@@ -22,7 +22,6 @@ public class DesktopInputHandler extends ActorGestureListener {
 
     public DesktopInputHandler(WorldStage worldStage, Player player) {
         this.worldStage = worldStage;
-//        inputHandler = new Dialog(worldStage);
         inputHandler = new Selection();
         this.player = player;
     }

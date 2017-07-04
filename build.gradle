@@ -1,0 +1,28 @@
+group 'com.workasintended'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'scala'
+
+sourceCompatibility = 1.8
+
+ext {
+    appName = "chromaggus"
+    gdxVersion = '1.9.6'
+//        ashleyVersion = '1.7.0' //ashley is an entity system
+    aiVersion = '1.8.0'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.scala-lang:scala-library:2.11.11'
+    compile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
+    compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    compile "com.badlogicgames.gdx:gdx:$gdxVersion"
+    compile "com.badlogicgames.gdx:gdx-ai:${aiVersion}"
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+
+}

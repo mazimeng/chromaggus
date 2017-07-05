@@ -1,9 +1,11 @@
-//package com.workasintended.chromaggus.ai.behavior;
+//package com.workasintended.ai.behavior;
 //
 //import com.badlogic.gdx.ai.btree.LeafTask;
 //import com.badlogic.gdx.ai.btree.Task;
 //import com.badlogic.gdx.math.Vector2;
 //import com.workasintended.chromaggus.Unit;
+//import com.workasintended.chromaggus.ai.behavior.Blackboard;
+//import com.workasintended.chromaggus.ai.behavior.GetPosition;
 //
 ///**
 // * Created by mazimeng on 5/22/16.

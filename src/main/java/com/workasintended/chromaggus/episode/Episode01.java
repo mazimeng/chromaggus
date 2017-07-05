@@ -31,6 +31,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.workasintended.ai.BehaviorBuilder;
 import com.workasintended.chromaggus.*;
 import com.workasintended.chromaggus.ability.Fireball;
 import com.workasintended.chromaggus.ability.Melee;
@@ -307,12 +308,13 @@ public class Episode01 {
         BehaviorTreeLibrary library = new BehaviorTreeLibrary(BehaviorTreeParser.DEBUG_HIGH);
         libraryManager.setLibrary(library);
 
+
         {
 
             Task<Blackboard> defense = makeDefense();
             Task<Blackboard> develop = makeDevelop();
             Task<Blackboard> seize = makeSeize();
-            Task<Blackboard> guard = makeGuard();
+            Task<Blackboard> guard = BehaviorBuilder.makeGuard();
 
 
 //            BehaviorTree<Blackboard> tree = new BehaviorTree<Blackboard>(new Selector<>(defense, new Sequence<>(new Wait(3), new Powerful(), seize)));

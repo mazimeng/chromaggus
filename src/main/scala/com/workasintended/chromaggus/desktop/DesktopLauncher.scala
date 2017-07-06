@@ -1,4 +1,4 @@
-package com.workasintended.desktop
+package com.workasintended.chromaggus.desktop
 
 import com.badlogic.gdx.backends.lwjgl.{LwjglApplication, LwjglApplicationConfiguration}
 import com.workasintended.chromaggus.ChromaggusGame

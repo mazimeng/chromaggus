@@ -1,4 +1,4 @@
-package com.workasintended.desktop
+package com.workasintended.chromaggus.desktop
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.EventListener

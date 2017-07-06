@@ -1,4 +1,4 @@
-package com.workasintended.desktop;
+package com.workasintended.chromaggus.desktop;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;

@@ -31,7 +31,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-import com.workasintended.ai.BehaviorBuilder;
+import com.workasintended.chromaggus.ai.BehaviorBuilder;
 import com.workasintended.chromaggus.*;
 import com.workasintended.chromaggus.ability.Fireball;
 import com.workasintended.chromaggus.ability.Melee;

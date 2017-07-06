@@ -1,4 +1,4 @@
-package com.workasintended.ai
+package com.workasintended.chromaggus.ai
 
 import com.badlogic.gdx.ai.btree.branch.{DynamicGuardSelector, Selector, Sequence}
 import com.badlogic.gdx.ai.btree.decorator.Invert

@@ -3,6 +3,7 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'scala'
+apply plugin: 'application'
 
 sourceCompatibility = 1.8
 
@@ -16,6 +17,27 @@ ext {
 repositories {
     mavenCentral()
 }
+
+sourceSets {
+    main {
+        scala {
+            srcDirs = ['src/main/scala', 'src/main/java']
+        }
+        java {
+            srcDirs = []
+        }
+    }
+    test {
+        scala {
+            srcDirs = ['src/test/scala', 'src/test/java']
+        }
+        java {
+            srcDirs = []
+        }
+    }
+}
+
+mainClassName = "com.workasintended.chromaggus.desktop.DesktopLauncher"
 
 dependencies {
     compile 'org.scala-lang:scala-library:2.11.11'

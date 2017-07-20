@@ -4,7 +4,7 @@ import com.badlogic.gdx.backends.lwjgl.{LwjglApplication, LwjglApplicationConfig
 import com.workasintended.chromaggus.ChromaggusGame
 
 object DesktopLauncher {
-	def main (args: Array[String]): Unit = {
+	def main (args: Array[String]): scala.Unit = {
 		val config = new LwjglApplicationConfiguration
 		config.width = 800
 		config.height = 600

@@ -1,4 +1,4 @@
-package com.workasintended.chromaggus
+package com.workasintended.chromaggus.system
 
 import com.badlogic.ashley.core.EntitySystem
 import com.badlogic.gdx.Gdx

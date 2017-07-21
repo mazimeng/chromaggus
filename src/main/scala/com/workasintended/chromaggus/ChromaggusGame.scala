@@ -3,7 +3,7 @@ package com.workasintended.chromaggus
 import com.badlogic.gdx.Game
 import com.badlogic.gdx.assets.AssetManager
 
-class ChromaggusGame(var gameConfiguration: GameConfiguration) extends Game {
+class ChromaggusGame extends Game {
 
   override def create(): scala.Unit = {
     Service.setEventQueue(new DefaultEventQueue)

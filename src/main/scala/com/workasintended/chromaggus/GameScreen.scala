@@ -5,8 +5,9 @@ import com.badlogic.gdx.{Gdx, InputMultiplexer, ScreenAdapter}
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.{Animation, Batch, TextureRegion}
-import com.badlogic.gdx.scenes.scene2d.{Actor, Stage}
+import com.badlogic.gdx.scenes.scene2d.{Actor, Stage, Touchable}
 import com.badlogic.gdx.scenes.scene2d.ui._
+import com.workasintended.chromaggus.system.{InputSystem, RenderSystem}
 
 
 class GameScreen extends ScreenAdapter {
@@ -23,8 +24,10 @@ class GameScreen extends ScreenAdapter {
     val stage = new Stage()
 
     val renderSystem = new RenderSystem(stage)
+    val inputSystem = new InputSystem(stage)
 
     engine.addSystem(renderSystem)
+    engine.addSystem(inputSystem)
 
     val actor = makeCharacter()
     stage.addActor(actor)
@@ -65,6 +68,7 @@ class GameScreen extends ScreenAdapter {
 
   class CharacterActor(val animation: Animation[TextureRegion], val selection: Animation[TextureRegion], var selected: Boolean = false) extends Actor {
     var stateTime = 0f
+    setTouchable(Touchable.enabled)
 
     override def draw(batch: Batch, parentAlpha: Float): scala.Unit = {
       stateTime += Gdx.graphics.getDeltaTime
@@ -96,12 +100,6 @@ class GameScreen extends ScreenAdapter {
 //    stage.addListener(this.inputHandler)
 //    //stage.addAction(sequenceAction);
 //  }
-
-  def initInputs(stage: Stage): scala.Unit = {
-    val multiplexer = new InputMultiplexer
-    multiplexer.addProcessor(stage)
-    Gdx.input.setInputProcessor(multiplexer)
-  }
 
 //  override def resize(width: Int, height: Int): Unit = {
 //    stage.getViewport.setWorldSize(width, height)

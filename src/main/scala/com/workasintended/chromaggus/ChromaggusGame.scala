@@ -6,8 +6,8 @@ import com.badlogic.gdx.assets.AssetManager
 class ChromaggusGame extends Game {
 
   override def create(): scala.Unit = {
-    Service.setEventQueue(new DefaultEventQueue)
-    Service.setAssetManager(new AssetManager)
+//    Service.setEventQueue(new DefaultEventQueue)
+    Service.assetManager = new AssetManager
 
     val screen = new GameScreen()
     this.setScreen(screen)

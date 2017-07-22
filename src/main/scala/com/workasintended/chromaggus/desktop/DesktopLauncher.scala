@@ -9,9 +9,9 @@ object DesktopLauncher {
 		config.width = 800
 		config.height = 600
 
-		val gameConfiguration = new DesktopGameConfiguration
+//		val gameConfiguration = new DesktopGameConfiguration
 
-		val chromaggusGame = new ChromaggusGame(gameConfiguration)
+		val chromaggusGame = new ChromaggusGame()
 		new LwjglApplication(chromaggusGame, config)
 	}
 }

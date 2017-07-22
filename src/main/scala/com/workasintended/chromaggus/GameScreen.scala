@@ -1,17 +1,21 @@
 package com.workasintended.chromaggus
 
-import com.badlogic.ashley.core.Engine
-import com.badlogic.gdx.{Gdx, InputMultiplexer, ScreenAdapter}
+import com.badlogic.ashley.core.{Engine, Entity}
+import com.badlogic.ashley.signals.{Listener, Signal}
+import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g2d.{Animation, Batch, TextureRegion}
-import com.badlogic.gdx.scenes.scene2d.{Actor, Stage, Touchable}
+import com.badlogic.gdx.graphics.g2d.{Animation, TextureRegion}
+import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui._
-import com.workasintended.chromaggus.system.{InputSystem, RenderSystem}
+import com.workasintended.chromaggus.component.ActorComponent
+import com.workasintended.chromaggus.system.{ControlSystem, RenderSystem}
 
 
 class GameScreen extends ScreenAdapter {
   val engine = new Engine()
+  val stage = new Stage()
+
   init()
 
   override def render(delta: Float): scala.Unit = {
@@ -20,17 +24,14 @@ class GameScreen extends ScreenAdapter {
 
   def init(): scala.Unit = {
     initAssets()
-
-    val stage = new Stage()
-
     val renderSystem = new RenderSystem(stage)
-    val inputSystem = new InputSystem(stage)
+    val inputSystem = new ControlSystem(stage)
 
     engine.addSystem(renderSystem)
     engine.addSystem(inputSystem)
 
-    val actor = makeCharacter()
-    stage.addActor(actor)
+    val entity = makeCharacter()
+    engine.addEntity(entity)
   }
 
   def initAssets(): scala.Unit = {
@@ -44,7 +45,7 @@ class GameScreen extends ScreenAdapter {
     Service.assetManager.finishLoading()
   }
 
-  def makeCharacter(): Actor = {
+  def makeCharacter(): Entity = {
     val char00 = new Texture("char00.png")
     val char01 = new Texture("char01.png")
     val char02 = new Texture("char02.png")
@@ -59,36 +60,18 @@ class GameScreen extends ScreenAdapter {
     val itemTexture: Texture = Service.assetManager.get("spritesheet/selection.png")
     val selectionTextureRegions = TextureRegion.split(itemTexture, itemTexture.getWidth() / 2, itemTexture.getHeight / 1)
     val selectionAnimation = new Animation[TextureRegion](0.5f, selectionTextureRegions(0)(0), selectionTextureRegions(0)(1))
-    val actor = new CharacterActor(animation, selectionAnimation)
+    val renderableComponent = new ActorComponent(animation)
 
-    actor.setSize(32, 32)
+    renderableComponent.setSize(32, 32)
 
-    actor
+
+    val entity = new Entity()
+    entity.add(renderableComponent)
+
+    entity
   }
 
-  class CharacterActor(val animation: Animation[TextureRegion], val selection: Animation[TextureRegion], var selected: Boolean = false) extends Actor {
-    var stateTime = 0f
-    setTouchable(Touchable.enabled)
 
-    override def draw(batch: Batch, parentAlpha: Float): scala.Unit = {
-      stateTime += Gdx.graphics.getDeltaTime
-
-      renderCharacter(batch, parentAlpha)
-      renderSelection(batch, parentAlpha)
-    }
-
-    private def renderCharacter(batch: Batch, parentAlpha: Float): scala.Unit = {
-      val frame = animation.getKeyFrame(stateTime, true)
-      batch.draw(frame, getX(), getY(), getOriginX(), getOriginY(), getWidth(), getHeight(), getScaleX(), getScaleY(), getRotation())
-    }
-
-    private def renderSelection(batch: Batch, parentAlpha: Float): scala.Unit = {
-      if(!selected) return
-
-      val frame = selection.getKeyFrame(stateTime, true)
-      batch.draw(frame, getX, getY, getOriginX, getOriginY, getWidth, getHeight, getScaleX, getScaleY, getRotation)
-    }
-  }
 
 //  def initStage(): Unit = {
 //    val viewport = gameConfiguration.makeWorldViewport
@@ -101,11 +84,8 @@ class GameScreen extends ScreenAdapter {
 //    //stage.addAction(sequenceAction);
 //  }
 
-//  override def resize(width: Int, height: Int): Unit = {
+  override def resize(width: Int, height: Int): Unit = {
 //    stage.getViewport.setWorldSize(width, height)
-//    stage.getViewport.update(width, height)
-//    val zoom = 1280 * 0.4f / width
-//    gui.getViewport.setWorldSize(width * zoom, height * zoom)
-//    gui.getViewport.update(width, height, true)
-//  }
+    stage.getViewport.update(width, height)
+  }
 }

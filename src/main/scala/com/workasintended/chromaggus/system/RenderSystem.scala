@@ -4,15 +4,14 @@ import com.badlogic.ashley.core._
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.scenes.scene2d.Stage
-import com.workasintended.chromaggus.component.{CharacterComponent, ActorComponent}
+import com.workasintended.chromaggus.component.{ActorComponent, SelectionComponent}
 
 /**
   * Created by mazimeng on 7/20/17.
   */
 class RenderSystem(val stage: Stage) extends EntitySystem {
-  val family: Family = Family.one(classOf[ActorComponent]).get()
+  val family: Family = Family.one(classOf[ActorComponent], classOf[SelectionComponent]).get()
   private val renderableComponentMapper = ComponentMapper.getFor(classOf[ActorComponent])
-
 
   override def addedToEngine(engine: Engine) {
     engine.addEntityListener(family, new EntityListener() {

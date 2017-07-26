@@ -17,7 +17,7 @@ class JobSystem(family: Family) extends IteratingSystem(family) {
   override def processEntity(entity: Entity, v: Float): scala.Unit = {
     val jobComponent = jobComponentMapper.get(entity)
 
-    if(jobComponent.job.done()) {
+    if(jobComponent.job.done) {
       println("job done")
       entity.remove(classOf[JobComponent])
       return

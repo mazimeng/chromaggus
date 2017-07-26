@@ -12,6 +12,7 @@ import com.workasintended.chromaggus.system.{ControlSystem, JobSystem, RenderSys
 class GameScreen extends ScreenAdapter {
   val engine = new Engine()
   val stage = new Stage()
+  Factory.engine = engine
 
   init()
 

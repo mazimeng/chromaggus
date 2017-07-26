@@ -1,40 +1,33 @@
 package com.workasintended.chromaggus.system
 
 import com.badlogic.ashley.core._
-import com.badlogic.ashley.systems.IteratingSystem
-import com.workasintended.chromaggus.component.{SelectedComponent, SelectionComponent, TransformComponent}
+import com.workasintended.chromaggus.component._
 
 /**
   * Created by mazimeng on 7/25/17.
   */
-class SelectionSystem(family: Family) extends IteratingSystem(family) {
+class SelectionSystem() extends EntitySystem {
   private val transformComponentMapper = ComponentMapper.getFor(classOf[TransformComponent])
-  private val selectionComponentMapper = ComponentMapper.getFor(classOf[SelectionComponent])
-
-  def this() {
-    this(Family.all(classOf[SelectionComponent], classOf[TransformComponent]).get())
-  }
-
-  override def processEntity(entity: Entity, v: Float): Unit = {
-    val tc = transformComponentMapper.get(entity)
-    val sc = selectionComponentMapper.get(entity)
-    val targetTc = transformComponentMapper.get(sc.target)
-
-    tc.position.set(targetTc.position)
-  }
+  private val actorComponentMapper = ComponentMapper.getFor(classOf[ActorComponent])
+  private val selectedComponentMapper = ComponentMapper.getFor(classOf[SelectedComponent])
+  private val selectableComponentMapper = ComponentMapper.getFor(classOf[SelectableComponent])
+  private val selectedFamily: Family = Family.all(classOf[SelectedComponent], classOf[ActorComponent], classOf[SelectableComponent]).get()
 
   override def addedToEngine(engine: Engine): Unit = {
     super.addedToEngine(engine)
 
-    engine.addEntityListener(getFamily, new EntityListener() {
+    getEngine.addEntityListener(selectedFamily, new EntityListener {
       override def entityAdded(entity: Entity): scala.Unit = {
-        val selection = selectionComponentMapper.get(entity)
-        selection.target.add(new SelectedComponent())
+        val gameActor = actorComponentMapper.get(entity).actor
+        gameActor.addActor(selectableComponentMapper.get(entity).selectionActor)
+        println(s"entity added in selectedFamily in SelectionSystem, children: ${gameActor.getChildren.size}")
       }
 
       override def entityRemoved(entity: Entity): scala.Unit = {
-        val selectionComponent = selectionComponentMapper.get(entity)
-        selectionComponent.target.remove(classOf[SelectedComponent])
+        println("entity removed in selectedFamily in SelectionSystem")
+        val gameActor = actorComponentMapper.get(entity).actor
+        gameActor.removeActor(selectableComponentMapper.get(entity).selectionActor, false)
+        println(s"entity added in selectedFamily in SelectionSystem, children: ${gameActor.getChildren.size}")
       }
     })
   }

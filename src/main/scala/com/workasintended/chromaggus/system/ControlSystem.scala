@@ -5,7 +5,7 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener
 import com.badlogic.gdx.scenes.scene2d.{InputEvent, Stage}
 import com.badlogic.gdx.{Gdx, Input, InputMultiplexer}
-import com.workasintended.chromaggus.component.{JobComponent, SelectedComponent, SelectionComponent}
+import com.workasintended.chromaggus.component._
 import com.workasintended.chromaggus.job.MoveTo
 import com.workasintended.chromaggus.{Factory, GameActor}
 
@@ -16,10 +16,9 @@ import scala.collection.JavaConverters._
   */
 class ControlSystem(val stage: Stage) extends EntitySystem {
   private val selectedComponentMapper = ComponentMapper.getFor(classOf[SelectedComponent])
-  private val selectionComponentMapper = ComponentMapper.getFor(classOf[SelectionComponent])
 
   val selectedFamily: Family = Family.all(classOf[SelectedComponent]).get()
-  val selectionFamily: Family = Family.all(classOf[SelectionComponent]).get()
+  val selectableFamily: Family = Family.all(classOf[ActorComponent], classOf[SelectableComponent]).get()
 
   val multiplexer = new InputMultiplexer()
   multiplexer.addProcessor(stage)
@@ -37,8 +36,10 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
         if (actor == null) {
           println("clicked on empty field")
 
-          val selection = getEngine.getEntitiesFor(selectionFamily).asScala.toArray // instantiate a new collection to loop through
-          for (x <- selection) getEngine.removeEntity(x)
+          for (elem <- getEngine.getEntitiesFor(selectedFamily).asScala.toArray) {
+            elem.remove(classOf[SelectedComponent])
+          }
+
           return
         }
 
@@ -46,17 +47,44 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
 
         val entity = actor.asInstanceOf[GameActor].entity
 
-        val selection = Factory.makeSelection(entity)
-        getEngine.addEntity(selection)
+        if(!selectableFamily.matches(entity)) return
+
+        if(selectedComponentMapper.has(entity)) {
+          entity.remove(classOf[SelectedComponent])
+        }
+        else {
+          entity.add(new SelectedComponent())
+        }
+      }
+      else if(Input.Buttons.MIDDLE == button) {
+        for (elem <- getEngine.getEntitiesFor(selectedFamily).asScala) {
+          val fireball = Factory.makeFireball(elem, new Vector2(x, y))
+
+          getEngine.addEntity(fireball)
+        }
       }
       else if (Input.Buttons.RIGHT == button) {
         println(s"entities: ${getEngine.getEntities.size()}")
-        for (elem <- getEngine.getEntitiesFor(selectedFamily).asScala) {
-          val moveTo = new MoveTo(elem, new Vector2(x, y))
-          val jobComponent = new JobComponent(moveTo)
 
-          elem.remove(classOf[JobComponent])
-          elem.add(jobComponent)
+        val actor = stage.hit(x, y, true)
+
+        if(actor == null) {
+          for (elem <- getEngine.getEntitiesFor(selectedFamily).asScala) {
+            val moveTo = new MoveTo(elem, new Vector2(x, y))
+            val jobComponent = new JobComponent(moveTo)
+
+            elem.remove(classOf[JobComponent])
+            elem.add(jobComponent)
+          }
+        }
+        else {
+          for (elem <- getEngine.getEntitiesFor(selectedFamily).asScala) {
+            val moveTo = new MoveTo(elem, new Vector2(x, y))
+            val jobComponent = new JobComponent(moveTo)
+
+            elem.remove(classOf[JobComponent])
+            elem.add(jobComponent)
+          }
         }
       }
     }

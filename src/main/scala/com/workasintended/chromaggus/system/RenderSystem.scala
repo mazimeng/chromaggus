@@ -5,7 +5,7 @@ import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.scenes.scene2d.Stage
-import com.workasintended.chromaggus.component.{ActorComponent, SelectionComponent, TransformComponent}
+import com.workasintended.chromaggus.component.{ActorComponent, TransformComponent}
 
 /**
   * Created by mazimeng on 7/20/17.
@@ -24,11 +24,13 @@ class RenderSystem(val stage: Stage, val family: Family) extends IteratingSystem
       override def entityAdded(entity: Entity): scala.Unit = {
         val component = actorComponentMapper.get(entity)
         stage.addActor(component.actor)
+        println("an actor added")
       }
 
       override def entityRemoved(entity: Entity): scala.Unit = {
         val component = actorComponentMapper.get(entity)
         stage.getActors.removeValue(component.actor, false)
+        println("an actor removed")
       }
     })
   }

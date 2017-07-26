@@ -6,7 +6,7 @@ import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui._
-import com.workasintended.chromaggus.system.{ControlSystem, RenderSystem, SelectionSystem}
+import com.workasintended.chromaggus.system.{ControlSystem, JobSystem, RenderSystem, SelectionSystem}
 
 
 class GameScreen extends ScreenAdapter {
@@ -24,13 +24,17 @@ class GameScreen extends ScreenAdapter {
     val renderSystem = new RenderSystem(stage)
     val inputSystem = new ControlSystem(stage)
     val selectionHighlightSystem = new SelectionSystem()
+    val jobSystem = new JobSystem()
 
     engine.addSystem(renderSystem)
     engine.addSystem(inputSystem)
     engine.addSystem(selectionHighlightSystem)
+    engine.addSystem(jobSystem)
 
     val entity = Factory.makeCharacter()
     engine.addEntity(entity)
+
+    engine.addEntity(Factory.makeDummy())
   }
 
   def initAssets(): scala.Unit = {

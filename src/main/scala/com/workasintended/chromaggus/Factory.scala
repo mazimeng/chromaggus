@@ -5,7 +5,8 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.{Animation, TextureRegion}
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Touchable
-import com.workasintended.chromaggus.component.{ActorComponent, SelectionComponent, TransformComponent}
+import com.workasintended.chromaggus.component._
+import com.workasintended.chromaggus.job.MoveTo
 
 /**
   * Created by mazimeng on 7/22/17.
@@ -52,6 +53,34 @@ object Factory {
     actor.setSize(32, 32)
     val actorComponent = new ActorComponent(actor)
     val transformComponent = new TransformComponent(new Vector2(32, 32))
+    val movementComponent = new MovementComponent(new Vector2(32, 32))
+
+    val entity = new Entity()
+    entity.add(actorComponent)
+    entity.add(transformComponent)
+    entity.add(movementComponent)
+
+    actor.entity = entity
+
+    entity
+  }
+
+  def makeDummy(position: Vector2 = new Vector2()): Entity = {
+    val char00 = new Texture("char00.png")
+    val char01 = new Texture("char01.png")
+    val char02 = new Texture("char02.png")
+
+    val char01Frames = TextureRegion.split(char01, char01.getWidth / 3, char01.getHeight / 4)
+    val char00Frames = TextureRegion.split(char00, char00.getWidth / 12, char00.getHeight / 8)
+    val char02Frames = TextureRegion.split(char02, char00.getWidth / 12, char00.getHeight / 8)
+
+    val frames = new Array[TextureRegion](2)
+    val animation = new Animation[TextureRegion](0.5f, char01Frames(0)(0), char01Frames(0)(2))
+
+    val actor = new GameActor(animation)
+    actor.setSize(32, 32)
+    val actorComponent = new ActorComponent(actor)
+    val transformComponent = new TransformComponent(position)
 
     val entity = new Entity()
     entity.add(actorComponent)
@@ -59,6 +88,16 @@ object Factory {
 
     actor.entity = entity
 
+    entity
+  }
+
+  def makeMoveTo(target: Entity, position: Vector2): Entity = {
+    val entity = new Entity()
+
+    val moveTo = new MoveTo(target, position)
+    val jobComponent = new JobComponent(moveTo)
+
+    entity.add(jobComponent)
     entity
   }
 }

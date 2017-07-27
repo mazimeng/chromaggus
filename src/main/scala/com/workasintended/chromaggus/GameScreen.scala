@@ -4,9 +4,10 @@ import com.badlogic.ashley.core.Engine
 import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui._
-import com.workasintended.chromaggus.system.{ControlSystem, JobSystem, RenderSystem, SelectionSystem}
+import com.workasintended.chromaggus.system._
 
 
 class GameScreen extends ScreenAdapter {
@@ -26,13 +27,18 @@ class GameScreen extends ScreenAdapter {
     val inputSystem = new ControlSystem(stage)
     val selectionHighlightSystem = new SelectionSystem()
     val jobSystem = new JobSystem()
+    val behaviorSystem = new BehaviorSystem()
 
     engine.addSystem(renderSystem)
     engine.addSystem(inputSystem)
     engine.addSystem(selectionHighlightSystem)
     engine.addSystem(jobSystem)
+    engine.addSystem(behaviorSystem)
 
-    val entity = Factory.makeCharacter()
+    var entity = Factory.makeCharacter(new Vector2(32f, 32f))
+    engine.addEntity(entity)
+
+    entity = Factory.makeCharacter(new Vector2(64f, 64f))
     engine.addEntity(entity)
 
     engine.addEntity(Factory.makeDummy())

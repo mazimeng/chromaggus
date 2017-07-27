@@ -1,6 +1,6 @@
 package com.workasintended.chromaggus.system
 
-import com.badlogic.ashley.core.{ComponentMapper, Engine, Entity, Family}
+import com.badlogic.ashley.core.{ComponentMapper, Entity, Family}
 import com.badlogic.ashley.systems.IteratingSystem
 import com.workasintended.chromaggus.component.JobComponent
 

@@ -2,6 +2,8 @@ package com.workasintended.chromaggus
 
 import com.badlogic.ashley.core.{ComponentMapper, Engine, Entity}
 import com.badlogic.ashley.signals.{Listener, Signal}
+import com.badlogic.gdx.ai.btree.BehaviorTree
+import com.badlogic.gdx.ai.btree.utils.BehaviorTreeLibraryManager
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.{Animation, TextureRegion}
 import com.badlogic.gdx.math.Vector2
@@ -65,14 +67,14 @@ object Factory {
     actor
   }
 
-  def makeCharacter(): Entity = {
+  def makeCharacter(pos: Vector2 = new Vector2()): Entity = {
     val animation = new Animation[TextureRegion](0.5f, char01Frames(0)(0), char01Frames(0)(2))
 
     val actor = new GameActor(animation)
     actor.setSize(32, 32)
     val actorComponent = new ActorComponent(actor)
-    val transformComponent = new TransformComponent(new Vector2(32, 32))
-    val movementComponent = new MovementComponent(new Vector2(32, 32))
+    val transformComponent = new TransformComponent(pos)
+    val movementComponent = new MovementComponent(pos)
 
     val entity = new Entity()
     entity.componentAdded.add(new Listener[Entity]() {
@@ -85,6 +87,7 @@ object Factory {
     entity.add(transformComponent)
     entity.add(movementComponent)
     entity.add(new SelectableComponent())
+//    entity.add(new BehaviorComponent(makeBehavior("some")))
 
     actor.entity = entity
 
@@ -154,5 +157,15 @@ object Factory {
     entity.add(jobComponent)
 
     entity
+  }
+
+  def makeBehavior(name: String): BehaviorTree[Blackboard] = {
+    val blackboard = new Blackboard()
+
+    val library = BehaviorTreeLibraryManager.getInstance().getLibrary()
+
+    val tree = library.createBehaviorTree(name, blackboard)
+
+    tree
   }
 }

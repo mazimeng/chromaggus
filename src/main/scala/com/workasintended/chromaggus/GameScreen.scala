@@ -9,6 +9,8 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui._
 import com.workasintended.chromaggus.system._
 
+import scala.util.Random
+
 
 class GameScreen extends ScreenAdapter {
   val engine = new Engine()
@@ -35,11 +37,13 @@ class GameScreen extends ScreenAdapter {
     engine.addSystem(jobSystem)
     engine.addSystem(behaviorSystem)
 
-    var entity = Factory.makeCharacter(new Vector2(32f, 32f))
-    engine.addEntity(entity)
+    val characterCount = 3
+    val random = new Random()
 
-    entity = Factory.makeCharacter(new Vector2(64f, 64f))
-    engine.addEntity(entity)
+    0 to characterCount foreach { _ =>
+      val entity = Factory.makeCharacter(new Vector2(random.nextInt(800), random.nextInt(600)))
+      engine.addEntity(entity)
+    }
 
     engine.addEntity(Factory.makeDummy())
   }

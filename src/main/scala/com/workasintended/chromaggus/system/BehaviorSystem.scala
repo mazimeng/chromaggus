@@ -7,7 +7,7 @@ import com.badlogic.gdx.ai.btree.Task.Status
 import com.badlogic.gdx.ai.btree.branch.Sequence
 import com.badlogic.gdx.ai.btree.utils.{BehaviorTreeLibrary, BehaviorTreeLibraryManager, BehaviorTreeParser}
 import com.workasintended.chromaggus.Blackboard
-import com.workasintended.chromaggus.behavior.Dummy
+import com.workasintended.chromaggus.behavior.{Dummy, FindThreat}
 import com.workasintended.chromaggus.component.BehaviorComponent
 
 /**
@@ -40,23 +40,9 @@ class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).get
 
   private def makeMoveToTree(): BehaviorTree[Blackboard] = {
     val tree = new BehaviorTree[Blackboard]()
-    val seq = new Sequence[Blackboard]()
-    var dummy = new Dummy()
-    dummy.text = "dummy1"
-    dummy.statusToReturn = Status.SUCCEEDED
-    seq.addChild(dummy)
+    val findThreat = new FindThreat()
 
-    dummy = new Dummy()
-    dummy.text = "dummy2"
-    dummy.statusToReturn = Status.RUNNING
-    seq.addChild(dummy)
-
-    dummy = new Dummy()
-    dummy.text = "dummy3"
-    dummy.statusToReturn = Status.SUCCEEDED
-    seq.addChild(dummy)
-
-    tree.addChild(seq)
+    tree.addChild(findThreat)
     tree
   }
 }

@@ -83,11 +83,14 @@ object Factory {
       }
     })
 
+    val behaviorComponent = new BehaviorComponent(makeBehavior("some"))
+    behaviorComponent.behaviorTree.getObject.entity = entity
+
     entity.add(actorComponent)
     entity.add(transformComponent)
     entity.add(movementComponent)
     entity.add(new SelectableComponent())
-//    entity.add(new BehaviorComponent(makeBehavior("some")))
+    entity.add(behaviorComponent)
 
     actor.entity = entity
 

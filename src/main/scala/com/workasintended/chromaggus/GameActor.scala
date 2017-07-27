@@ -9,7 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.{Group, Touchable}
   * Created by mazimeng on 7/22/17.
   */
 class GameActor(val animation: Animation[TextureRegion]) extends Group {
-  private var stateTime = 0f
+  var stateTime = 0f
   setTouchable(Touchable.enabled)
 
   def entity: Entity = {

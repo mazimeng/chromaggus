@@ -12,6 +12,4 @@ class ChromaggusGame extends Game {
     val screen = new GameScreen()
     this.setScreen(screen)
   }
-
-
 }

@@ -49,10 +49,12 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
 
         val entity = actor.asInstanceOf[GameActor].entity
 
+        if(entity == null) return
+
         if(!selectableFamily.matches(entity)) return
 
-        clearSelection()
-        entity.add(new SelectedComponent())
+        clearSelection(entity)
+        if(!selectedComponentMapper.has(entity)) entity.add(new SelectedComponent())
       }
       else if(Input.Buttons.MIDDLE == button) {
         for (elem <- getEngine.getEntitiesFor(selectedFamily).asScala) {

@@ -4,10 +4,10 @@ import com.badlogic.ashley.core._
 import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.ai.btree.BehaviorTree
 import com.badlogic.gdx.ai.btree.Task.Status
-import com.badlogic.gdx.ai.btree.branch.Sequence
+import com.badlogic.gdx.ai.btree.branch.{Selector, Sequence}
 import com.badlogic.gdx.ai.btree.utils.{BehaviorTreeLibrary, BehaviorTreeLibraryManager, BehaviorTreeParser}
 import com.workasintended.chromaggus.Blackboard
-import com.workasintended.chromaggus.behavior.{Dummy, FindThreat}
+import com.workasintended.chromaggus.behavior._
 import com.workasintended.chromaggus.component.BehaviorComponent
 
 /**
@@ -31,7 +31,6 @@ class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).get
     if(bc.elapsedSinceLastStep >= bc.interval) {
       bc.elapsedSinceLastStep = 0
       bc.behaviorTree.step()
-      println("behavior stepped")
     }
     else {
       bc.elapsedSinceLastStep += v
@@ -40,9 +39,20 @@ class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).get
 
   private def makeMoveToTree(): BehaviorTree[Blackboard] = {
     val tree = new BehaviorTree[Blackboard]()
-    val findThreat = new FindThreat()
 
-    tree.addChild(findThreat)
+    val returnToStation = new Selector[Blackboard]()
+    returnToStation.addChild(new InSafeZone())
+    returnToStation.addChild(new AtStation())
+    returnToStation.addChild(new ReturnToStation())
+
+    val attack = new Sequence[Blackboard]()
+    attack.addChild(new FindThreat())
+    attack.addChild(new Attack())
+
+    attack.setGuard(new Sequence[Blackboard](new Dummy("attack guard evaluated"), new InSafeZone()))
+
+    tree.addChild(new Sequence(returnToStation, attack))
+
     tree
   }
 }

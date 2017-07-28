@@ -5,12 +5,11 @@ import com.badlogic.gdx.ai.btree.Task.Status
 import com.workasintended.chromaggus.Blackboard
 
 /**
-  * Created by mazimeng on 7/27/17.
+  * Created by mazimeng on 7/28/17.
   */
-class FindThreat extends LeafTask[Blackboard] {
+class InSafeZone extends LeafTask[Blackboard]{
   override def execute(): Status = {
-    getObject.enemies = getObject.findEnemies()
-    if (getObject.enemies.nonEmpty) Status.SUCCEEDED
+    if(getObject.isSafe) Status.SUCCEEDED
     else Status.FAILED
   }
 

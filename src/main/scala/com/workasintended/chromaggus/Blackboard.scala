@@ -1,8 +1,9 @@
 package com.workasintended.chromaggus
 
 import com.badlogic.ashley.core.{ComponentMapper, Entity, Family}
-import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.math.{Circle, Vector2}
 import com.workasintended.chromaggus.component.{JobComponent, MovementComponent}
+
 import scala.collection.JavaConverters._
 
 /**
@@ -15,6 +16,11 @@ class Blackboard {
   var job: JobComponent = _
   var entity: Entity = _
   var threatRange2: Float = 128f*128f
+
+  val safe: Circle = new Circle()
+  val station: Circle = new Circle()
+
+  var enemies: Seq[Entity] = _
 
   def entityPosition(): Vector2 = movementComponentMapper.get(entity).position
 
@@ -34,5 +40,15 @@ class Blackboard {
     }).toSeq
 
     enemies
+  }
+
+  def isStationed: Boolean = {
+    val position = movementComponentMapper.get(entity).position
+    station.contains(position)
+  }
+
+  def isSafe: Boolean = {
+    val position = movementComponentMapper.get(entity).position
+    safe.contains(position)
   }
 }

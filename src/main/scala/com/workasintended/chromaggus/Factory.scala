@@ -6,7 +6,7 @@ import com.badlogic.gdx.ai.btree.BehaviorTree
 import com.badlogic.gdx.ai.btree.utils.BehaviorTreeLibraryManager
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.{Animation, TextureRegion}
-import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.math.{Circle, Vector2}
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.workasintended.chromaggus.component._
 import com.workasintended.chromaggus.job.{JobListener, MoveTo}
@@ -18,6 +18,7 @@ object Factory {
   var engine: Engine = _
 
   private val transformComponentMapper = ComponentMapper.getFor(classOf[TransformComponent])
+  private val movementComponentMapper = ComponentMapper.getFor(classOf[MovementComponent])
 
   private lazy val char00 = new Texture("char00.png")
   private lazy val char01 = new Texture("char01.png")
@@ -83,8 +84,12 @@ object Factory {
       }
     })
 
-    val behaviorComponent = new BehaviorComponent(makeBehavior("some"))
-    behaviorComponent.behaviorTree.getObject.entity = entity
+    val blackboard = new Blackboard()
+    blackboard.entity = entity
+    blackboard.station.set(pos, 64f)
+    blackboard.safe.set(pos, 128f)
+
+    val behaviorComponent = new BehaviorComponent(makeBehavior("some", entity, blackboard))
 
     entity.add(actorComponent)
     entity.add(transformComponent)
@@ -162,11 +167,8 @@ object Factory {
     entity
   }
 
-  def makeBehavior(name: String): BehaviorTree[Blackboard] = {
-    val blackboard = new Blackboard()
-
+  def makeBehavior(name: String, entity: Entity, blackboard: Blackboard): BehaviorTree[Blackboard] = {
     val library = BehaviorTreeLibraryManager.getInstance().getLibrary()
-
     val tree = library.createBehaviorTree(name, blackboard)
 
     tree

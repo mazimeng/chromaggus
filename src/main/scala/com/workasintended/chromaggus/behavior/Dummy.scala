@@ -7,9 +7,11 @@ import com.workasintended.chromaggus.Blackboard
 /**
   * Created by mazimeng on 7/27/17.
   */
-class Dummy extends LeafTask[Blackboard]{
-  var text: String = _
-  var statusToReturn: Status = Status.SUCCEEDED
+class Dummy(var text: String = "dummy", var statusToReturn: Status = Status.SUCCEEDED) extends LeafTask[Blackboard]{
+  def this() {
+    this("dummy", Status.SUCCEEDED)
+  }
+
   override def execute(): Status = {
     println(s"behavior: ${text}, ${statusToReturn}")
     statusToReturn

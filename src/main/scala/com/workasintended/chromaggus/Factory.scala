@@ -1,22 +1,28 @@
 package com.workasintended.chromaggus
 
-import com.badlogic.ashley.core.{ComponentMapper, Engine, Entity}
-import com.badlogic.ashley.signals.{Listener, Signal}
+import com.badlogic.ashley.core.{ComponentMapper, Engine, Entity, Family}
 import com.badlogic.gdx.ai.btree.BehaviorTree
+import com.badlogic.gdx.ai.btree.branch.Sequence
+import com.badlogic.gdx.ai.btree.decorator.Invert
 import com.badlogic.gdx.ai.btree.utils.BehaviorTreeLibraryManager
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g2d.{Animation, TextureRegion}
+import com.badlogic.gdx.graphics.g2d.{Animation, BitmapFont, TextureRegion}
 import com.badlogic.gdx.math.{Circle, Vector2}
 import com.badlogic.gdx.scenes.scene2d.Touchable
+import com.badlogic.gdx.scenes.scene2d.ui.Skin
+import com.workasintended.chromaggus.actor.HealthActor
+import com.workasintended.chromaggus.behavior._
 import com.workasintended.chromaggus.component._
 import com.workasintended.chromaggus.job.{JobListener, MoveTo}
+
+import scala.collection.JavaConverters._
 
 /**
   * Created by mazimeng on 7/22/17.
   */
 object Factory {
   var engine: Engine = _
-
+  lazy val bitmapFont = new BitmapFont()
   private val transformComponentMapper = ComponentMapper.getFor(classOf[TransformComponent])
   private val movementComponentMapper = ComponentMapper.getFor(classOf[MovementComponent])
 
@@ -69,6 +75,8 @@ object Factory {
   }
 
   def makeCharacter(pos: Vector2 = new Vector2()): Entity = {
+    val entity = new Entity()
+
     val animation = new Animation[TextureRegion](0.5f, char01Frames(0)(0), char01Frames(0)(2))
 
     val actor = new GameActor(animation)
@@ -76,13 +84,8 @@ object Factory {
     val actorComponent = new ActorComponent(actor)
     val transformComponent = new TransformComponent(pos)
     val movementComponent = new MovementComponent(pos)
-
-    val entity = new Entity()
-    entity.componentAdded.add(new Listener[Entity]() {
-      override def receive(signal: Signal[Entity], t: Entity): scala.Unit = {
-        println("component added")
-      }
-    })
+    val attributeComponent = new AttributeComponent()
+    attributeComponent.health = 100
 
     val blackboard = new Blackboard()
     blackboard.entity = entity
@@ -96,8 +99,17 @@ object Factory {
     entity.add(movementComponent)
     entity.add(new SelectableComponent())
     entity.add(behaviorComponent)
+    entity.add(attributeComponent)
 
     actor.entity = entity
+
+    val skin: Skin = Service.assetManager.get("uiskin.json")
+    val treeViewer = new BehaviorTreeViewer[Blackboard](behaviorComponent.behaviorTree, skin)
+    val behaviorDebuggerComponent: BehaviorDebuggerComponent[Blackboard] = new BehaviorDebuggerComponent(treeViewer)
+    entity.add(behaviorDebuggerComponent)
+
+    val healthActor = new HealthActor(attributeComponent)
+    actor.addActor(healthActor)
 
     entity
   }
@@ -141,9 +153,21 @@ object Factory {
   def makeFireball(caster: Entity, dest: Vector2): Entity = {
     val entity = new Entity()
     val moveTo = new MoveTo(entity, dest)
-    moveTo.speed = 128f
+    val effect = new Circle(dest, 32f)
+    val damage = 10
+    moveTo.speed = 256f
     moveTo.listener = new JobListener {
+      val targetFamily: Family = Family.all(classOf[AttributeComponent]).get()
+      val ac: ComponentMapper[AttributeComponent] = ComponentMapper.getFor(classOf[AttributeComponent])
+      val mc: ComponentMapper[MovementComponent] = ComponentMapper.getFor(classOf[MovementComponent])
       override def onDone(): Unit = {
+        val entities = engine.getEntitiesFor(targetFamily).asScala
+        for (elem <- entities) {
+          if(elem != caster && effect.contains(mc.get(elem).position)) {
+            ac.get(elem).health -= damage
+          }
+        }
+
         engine.removeEntity(entity)
       }
     }
@@ -170,6 +194,24 @@ object Factory {
   def makeBehavior(name: String, entity: Entity, blackboard: Blackboard): BehaviorTree[Blackboard] = {
     val library = BehaviorTreeLibraryManager.getInstance().getLibrary()
     val tree = library.createBehaviorTree(name, blackboard)
+
+    tree
+  }
+
+  def makeGuardBehavior(): BehaviorTree[Blackboard] = {
+    val tree = new BehaviorTree[Blackboard]()
+
+    val returnToStation = new ReturnToStation()
+    val returnToStationGuard = new Sequence(new Invert(new InSafeZone()), new Invert(new AtStation()))
+    returnToStation.setGuard(returnToStationGuard)
+
+    val attack = new Sequence[Blackboard]()
+    attack.addChild(new FindThreat())
+    attack.addChild(new Attack())
+
+    attack.setGuard(new Sequence[Blackboard](new Dummy("attack guard evaluated"), new InSafeZone()))
+
+    tree.addChild(new Sequence(returnToStation, attack))
 
     tree
   }

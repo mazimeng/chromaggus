@@ -20,14 +20,11 @@ class SelectionSystem() extends EntitySystem {
       override def entityAdded(entity: Entity): scala.Unit = {
         val gameActor = actorComponentMapper.get(entity).actor
         gameActor.addActor(selectableComponentMapper.get(entity).selectionActor)
-        println(s"entity added in selectedFamily in SelectionSystem, children: ${gameActor.getChildren.size}")
       }
 
       override def entityRemoved(entity: Entity): scala.Unit = {
-        println("entity removed in selectedFamily in SelectionSystem")
         val gameActor = actorComponentMapper.get(entity).actor
         gameActor.removeActor(selectableComponentMapper.get(entity).selectionActor, false)
-        println(s"entity added in selectedFamily in SelectionSystem, children: ${gameActor.getChildren.size}")
       }
     })
   }

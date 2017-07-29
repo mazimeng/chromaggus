@@ -3,17 +3,18 @@ package com.workasintended.chromaggus.system
 import com.badlogic.ashley.core._
 import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.ai.btree.BehaviorTree
-import com.badlogic.gdx.ai.btree.Task.Status
-import com.badlogic.gdx.ai.btree.branch.{Selector, Sequence}
+import com.badlogic.gdx.ai.btree.branch.Parallel.Policy
+import com.badlogic.gdx.ai.btree.branch.{Parallel, Selector, Sequence}
+import com.badlogic.gdx.ai.btree.decorator.Invert
 import com.badlogic.gdx.ai.btree.utils.{BehaviorTreeLibrary, BehaviorTreeLibraryManager, BehaviorTreeParser}
 import com.workasintended.chromaggus.Blackboard
 import com.workasintended.chromaggus.behavior._
-import com.workasintended.chromaggus.component.BehaviorComponent
+import com.workasintended.chromaggus.component.{BehaviorComponent, ManualComponent}
 
 /**
   * Created by mazimeng on 7/27/17.
   */
-class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).get()) extends IteratingSystem(family) {
+class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).exclude(classOf[ManualComponent]).get()) extends IteratingSystem(family) {
   private val behaviorComponent = ComponentMapper.getFor(classOf[BehaviorComponent])
 
   override def addedToEngine(engine: Engine): scala.Unit = {
@@ -22,8 +23,19 @@ class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).get
     val library: BehaviorTreeLibrary = new BehaviorTreeLibrary(BehaviorTreeParser.DEBUG_HIGH)
     libraryManager.setLibrary(library)
 
-    val tree = makeMoveToTree()
+    val tree = makeGuard()
     library.registerArchetypeTree("some", tree)
+
+    engine.addEntityListener(family, new EntityListener() {
+      override def entityAdded(entity: Entity): scala.Unit = {
+
+      }
+
+      override def entityRemoved(entity: Entity): scala.Unit = {
+        val component = behaviorComponent.get(entity)
+        component.behaviorTree.reset()
+      }
+    })
   }
 
   override def processEntity(entity: Entity, v: Float): scala.Unit = {
@@ -37,21 +49,16 @@ class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).get
     }
   }
 
-  private def makeMoveToTree(): BehaviorTree[Blackboard] = {
+  private def makeGuard(): BehaviorTree[Blackboard] = {
     val tree = new BehaviorTree[Blackboard]()
 
-    val returnToStation = new Selector[Blackboard]()
-    returnToStation.addChild(new InSafeZone())
-    returnToStation.addChild(new AtStation())
-    returnToStation.addChild(new ReturnToStation())
+    val returnToStation = new ReturnToStation()
+    val returnToStationGuard = new Sequence(new Invert(new InSafeZone()), new Invert(new AtStation()))
+    returnToStation.setGuard(returnToStationGuard)
 
-    val attack = new Sequence[Blackboard]()
-    attack.addChild(new FindThreat())
-    attack.addChild(new Attack())
+    val attack = new Parallel[Blackboard](Policy.Sequence, new InSafeZone(), new FindThreat(), new Attack())
 
-    attack.setGuard(new Sequence[Blackboard](new Dummy("attack guard evaluated"), new InSafeZone()))
-
-    tree.addChild(new Sequence(returnToStation, attack))
+    tree.addChild(new Selector(returnToStation, attack))
 
     tree
   }

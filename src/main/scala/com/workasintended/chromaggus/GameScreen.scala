@@ -9,12 +9,10 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui._
 import com.workasintended.chromaggus.system._
 
-import scala.util.Random
-
-
 class GameScreen extends ScreenAdapter {
   val engine = new Engine()
   val stage = new Stage()
+  val ui = new Stage()
   Factory.engine = engine
 
   init()
@@ -25,27 +23,22 @@ class GameScreen extends ScreenAdapter {
 
   def init(): scala.Unit = {
     initAssets()
-    val renderSystem = new RenderSystem(stage)
+    val renderSystem = new RenderSystem(stage, ui)
     val inputSystem = new ControlSystem(stage)
     val selectionHighlightSystem = new SelectionSystem()
     val jobSystem = new JobSystem()
     val behaviorSystem = new BehaviorSystem()
+    val behaviorDebugginSystem = new BehaviorDebuggingSystem(ui)
 
     engine.addSystem(renderSystem)
     engine.addSystem(inputSystem)
     engine.addSystem(selectionHighlightSystem)
     engine.addSystem(jobSystem)
     engine.addSystem(behaviorSystem)
+    engine.addSystem(behaviorDebugginSystem)
 
-    val characterCount = 3
-    val random = new Random()
-
-    0 to characterCount foreach { _ =>
-      val entity = Factory.makeCharacter(new Vector2(random.nextInt(800), random.nextInt(600)))
-      engine.addEntity(entity)
-    }
-
-    engine.addEntity(Factory.makeDummy())
+    engine.addEntity(Factory.makeCharacter(new Vector2(0, 0)))
+    engine.addEntity(Factory.makeCharacter(new Vector2(256, 256)))
   }
 
   def initAssets(): scala.Unit = {
@@ -59,19 +52,8 @@ class GameScreen extends ScreenAdapter {
     Service.assetManager.finishLoading()
   }
 
-//  def initStage(): Unit = {
-//    val viewport = gameConfiguration.makeWorldViewport
-//    stage = new WorldStage
-//    stage.setGridMap(new GridMap(100))
-//    stage.setShapeRenderer(new ShapeRenderer)
-//    stage.setViewport(viewport)
-//    this.inputHandler = this.gameConfiguration.makeInputListener(stage, player)
-//    stage.addListener(this.inputHandler)
-//    //stage.addAction(sequenceAction);
-//  }
-
   override def resize(width: Int, height: Int): Unit = {
-//    stage.getViewport.setWorldSize(width, height)
     stage.getViewport.update(width, height)
+    ui.getViewport.update(width, height)
   }
 }

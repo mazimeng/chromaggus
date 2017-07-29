@@ -6,7 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener
 import com.badlogic.gdx.scenes.scene2d.{InputEvent, Stage}
 import com.badlogic.gdx.{Gdx, Input, InputMultiplexer}
 import com.workasintended.chromaggus.component._
-import com.workasintended.chromaggus.job.{Follow, MoveTo, Use}
+import com.workasintended.chromaggus.job.{Follow, JobListener, MoveTo, Use}
 import com.workasintended.chromaggus.{Factory, GameActor}
 
 import scala.collection.JavaConverters._
@@ -71,9 +71,15 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
         if(actor == null) {
           for (elem <- getEngine.getEntitiesFor(selectedFamily).asScala) {
             val moveTo = new MoveTo(elem, new Vector2(x, y))
+            moveTo.listener = new JobListener {
+              override def onDone(): scala.Unit = {
+                elem.remove(classOf[ManualComponent])
+              }
+            }
             val jobComponent = new JobComponent(moveTo)
 
             elem.add(jobComponent)
+            elem.add(new ManualComponent())
           }
         }
         else {

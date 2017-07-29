@@ -18,7 +18,6 @@ class JobSystem(family: Family) extends IteratingSystem(family) {
     val jobComponent = jobComponentMapper.get(entity)
 
     if(jobComponent.job.done) {
-      println("job done")
       entity.remove(classOf[JobComponent])
       return
     }

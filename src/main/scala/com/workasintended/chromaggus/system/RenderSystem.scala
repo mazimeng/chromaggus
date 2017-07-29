@@ -10,9 +10,9 @@ import com.workasintended.chromaggus.component.{ActorComponent, TransformCompone
 /**
   * Created by mazimeng on 7/20/17.
   */
-class RenderSystem(val stage: Stage, val family: Family) extends IteratingSystem(family) {
-  def this(stage: Stage) {
-    this(stage, Family.all(classOf[ActorComponent], classOf[TransformComponent]).get())
+class RenderSystem(val stage: Stage, val ui: Stage, val family: Family) extends IteratingSystem(family) {
+  def this(stage: Stage, ui: Stage) {
+    this(stage, ui, Family.all(classOf[ActorComponent], classOf[TransformComponent]).get())
   }
   private val actorComponentMapper = ComponentMapper.getFor(classOf[ActorComponent])
   private val transformComponentMapper = ComponentMapper.getFor(classOf[TransformComponent])
@@ -24,13 +24,12 @@ class RenderSystem(val stage: Stage, val family: Family) extends IteratingSystem
       override def entityAdded(entity: Entity): scala.Unit = {
         val component = actorComponentMapper.get(entity)
         stage.addActor(component.actor)
-        println("an actor added")
       }
 
       override def entityRemoved(entity: Entity): scala.Unit = {
         val component = actorComponentMapper.get(entity)
-        stage.getActors.removeValue(component.actor, false)
-        println("an actor removed")
+//        stage.getActors.removeValue(component.actor, false)
+        component.actor.remove()
       }
     })
   }
@@ -41,8 +40,12 @@ class RenderSystem(val stage: Stage, val family: Family) extends IteratingSystem
     Gdx.gl.glClearColor(0.0f, 0.0f, 0f, 1)
     Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
+
     stage.act(delta)
+    ui.act(delta)
+
     stage.draw()
+    ui.draw()
   }
 
   override def processEntity(entity: Entity, delta: Float): scala.Unit = {

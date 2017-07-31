@@ -6,7 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener
 import com.badlogic.gdx.scenes.scene2d.{InputEvent, Stage}
 import com.badlogic.gdx.{Gdx, Input, InputMultiplexer}
 import com.workasintended.chromaggus.component._
-import com.workasintended.chromaggus.job.{Follow, JobListener, MoveTo, Use}
+import com.workasintended.chromaggus.job.{MoveTo, Use}
 import com.workasintended.chromaggus.{Factory, GameActor}
 
 import scala.collection.JavaConverters._
@@ -18,6 +18,7 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
   private val selectedComponentMapper = ComponentMapper.getFor(classOf[SelectedComponent])
 
   val selectedFamily: Family = Family.all(classOf[SelectedComponent]).get()
+  val controllableFamily: Family = Family.all(classOf[SelectedComponent]).exclude(classOf[DeadComponent]).get()
   val selectableFamily: Family = Family.all(classOf[ActorComponent], classOf[SelectableComponent]).get()
 
   val multiplexer = new InputMultiplexer()
@@ -40,7 +41,6 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
         val actor = stage.hit(x, y, true)
 
         if (actor == null) {
-          println("clicked on empty field")
           clearSelection()
           return
         }
@@ -57,7 +57,7 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
         if(!selectedComponentMapper.has(entity)) entity.add(new SelectedComponent())
       }
       else if(Input.Buttons.MIDDLE == button) {
-        for (elem <- getEngine.getEntitiesFor(selectedFamily).asScala) {
+        for (elem <- getEngine.getEntitiesFor(controllableFamily).asScala) {
           val fireball = Factory.makeFireball(elem, new Vector2(x, y))
 
           getEngine.addEntity(fireball)
@@ -69,13 +69,9 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
         val actor = stage.hit(x, y, true)
 
         if(actor == null) {
-          for (elem <- getEngine.getEntitiesFor(selectedFamily).asScala) {
+          for (elem <- getEngine.getEntitiesFor(controllableFamily).asScala) {
             val moveTo = new MoveTo(elem, new Vector2(x, y))
-            moveTo.listener = new JobListener {
-              override def onDone(): scala.Unit = {
-                elem.remove(classOf[ManualComponent])
-              }
-            }
+            moveTo.onDone = () => elem.remove(classOf[ManualComponent])
             val jobComponent = new JobComponent(moveTo)
 
             elem.add(jobComponent)
@@ -86,7 +82,7 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
           if (!actor.isInstanceOf[GameActor]) return
           val entity = actor.asInstanceOf[GameActor].entity
 
-          for (elem <- getEngine.getEntitiesFor(selectedFamily).asScala) {
+          for (elem <- getEngine.getEntitiesFor(controllableFamily).asScala) {
             val follow = new Use(elem, entity)
             val jobComponent = new JobComponent(follow)
 

@@ -14,10 +14,11 @@ class Attack extends LeafTask[Blackboard]{
     if(getObject.enemies.nonEmpty) {
       if(getStatus != Status.RUNNING) {
         val attack = new Use(getObject.entity, getObject.enemies.head)
+        attack.onDone = () => reset()
+
         val jobComponent = new JobComponent(attack)
 
         getObject.entity.add(jobComponent)
-        println("attacking")
       }
 
       Status.RUNNING

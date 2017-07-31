@@ -9,12 +9,12 @@ import com.badlogic.gdx.ai.btree.decorator.Invert
 import com.badlogic.gdx.ai.btree.utils.{BehaviorTreeLibrary, BehaviorTreeLibraryManager, BehaviorTreeParser}
 import com.workasintended.chromaggus.Blackboard
 import com.workasintended.chromaggus.behavior._
-import com.workasintended.chromaggus.component.{BehaviorComponent, ManualComponent}
+import com.workasintended.chromaggus.component.{BehaviorComponent, DeadComponent, ManualComponent}
 
 /**
   * Created by mazimeng on 7/27/17.
   */
-class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).exclude(classOf[ManualComponent]).get()) extends IteratingSystem(family) {
+class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).exclude(classOf[ManualComponent], classOf[DeadComponent]).get()) extends IteratingSystem(family) {
   private val behaviorComponent = ComponentMapper.getFor(classOf[BehaviorComponent])
 
   override def addedToEngine(engine: Engine): scala.Unit = {
@@ -28,12 +28,11 @@ class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).exc
 
     engine.addEntityListener(family, new EntityListener() {
       override def entityAdded(entity: Entity): scala.Unit = {
-
+        val component = behaviorComponent.get(entity)
+        component.behaviorTree.reset()
       }
 
       override def entityRemoved(entity: Entity): scala.Unit = {
-        val component = behaviorComponent.get(entity)
-        component.behaviorTree.reset()
       }
     })
   }

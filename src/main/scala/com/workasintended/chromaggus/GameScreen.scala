@@ -3,7 +3,7 @@ package com.workasintended.chromaggus
 import com.badlogic.ashley.core.Engine
 import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.audio.Sound
-import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.{OrthographicCamera, Texture}
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.{Actor, Stage}
 import com.badlogic.gdx.scenes.scene2d.ui._
@@ -33,7 +33,6 @@ class GameScreen extends ScreenAdapter {
       timeElapsed = 0
       frameCount = 0
     }
-
   }
 
   def init(): scala.Unit = {
@@ -50,9 +49,11 @@ class GameScreen extends ScreenAdapter {
     engine.addSystem(selectionHighlightSystem)
     engine.addSystem(jobSystem)
     engine.addSystem(behaviorSystem)
+    engine.addSystem(new DeathSystem())
     engine.addSystem(behaviorDebugginSystem)
 
     engine.addEntity(Factory.makeCharacter(new Vector2(0, 0)))
+    engine.addEntity(Factory.makeCharacter(new Vector2(128, 128)))
     engine.addEntity(Factory.makeCharacter(new Vector2(256, 256)))
   }
 

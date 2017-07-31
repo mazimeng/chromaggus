@@ -13,7 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.workasintended.chromaggus.actor.HealthActor
 import com.workasintended.chromaggus.behavior._
 import com.workasintended.chromaggus.component._
-import com.workasintended.chromaggus.job.{JobListener, MoveTo}
+import com.workasintended.chromaggus.job.MoveTo
 
 import scala.collection.JavaConverters._
 
@@ -154,22 +154,19 @@ object Factory {
     val entity = new Entity()
     val moveTo = new MoveTo(entity, dest)
     val effect = new Circle(dest, 32f)
-    val damage = 10
+    val damage = 40
     moveTo.speed = 256f
-    moveTo.listener = new JobListener {
+    moveTo.onDone = () => {
       val targetFamily: Family = Family.all(classOf[AttributeComponent]).get()
       val ac: ComponentMapper[AttributeComponent] = ComponentMapper.getFor(classOf[AttributeComponent])
       val mc: ComponentMapper[MovementComponent] = ComponentMapper.getFor(classOf[MovementComponent])
-      override def onDone(): Unit = {
-        val entities = engine.getEntitiesFor(targetFamily).asScala
-        for (elem <- entities) {
-          if(elem != caster && effect.contains(mc.get(elem).position)) {
-            ac.get(elem).health -= damage
-          }
+      val entities = engine.getEntitiesFor(targetFamily).asScala
+      for (elem <- entities) {
+        if(elem != caster && effect.contains(mc.get(elem).position)) {
+          ac.get(elem).health -= damage
         }
-
-        engine.removeEntity(entity)
       }
+      engine.removeEntity(entity)
     }
 
     val animation = new Animation[TextureRegion](0.5f, iconFrames(6)(0))

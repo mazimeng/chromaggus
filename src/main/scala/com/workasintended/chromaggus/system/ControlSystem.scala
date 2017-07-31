@@ -16,6 +16,7 @@ import scala.collection.JavaConverters._
   */
 class ControlSystem(val stage: Stage) extends EntitySystem {
   private val selectedComponentMapper = ComponentMapper.getFor(classOf[SelectedComponent])
+  private val characterComponent = ComponentMapper.getFor(classOf[CharacterComponent])
 
   val selectedFamily: Family = Family.all(classOf[SelectedComponent]).get()
   val controllableFamily: Family = Family.all(classOf[SelectedComponent]).exclude(classOf[DeadComponent]).get()
@@ -77,8 +78,8 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
           val abilitySystem = getEngine.getSystem(classOf[AbilitySystem])
 
           for (elem <- getEngine.getEntitiesFor(controllableFamily).asScala) {
-            val fireball = Factory.makeFireball(elem, target)
-            val follow = new Use(elem, target, fireball, abilitySystem)
+            val ability = characterComponent.get(elem).equippedAbility
+            val follow = new Use(elem, target, ability, abilitySystem)
             val jobComponent = new JobComponent(follow)
 
             elem.add(jobComponent)

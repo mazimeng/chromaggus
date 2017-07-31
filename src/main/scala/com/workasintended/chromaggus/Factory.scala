@@ -111,6 +111,12 @@ object Factory {
     val healthActor = new HealthActor(attributeComponent)
     actor.addActor(healthActor)
 
+    val characterComponent = new CharacterComponent()
+    val fireball = makeFireballAbility()
+    characterComponent.equippedAbility = fireball
+
+    entity.add(characterComponent)
+
     entity
   }
 
@@ -199,11 +205,35 @@ object Factory {
     val actorComponent = new ActorComponent(actor)
     val transformComponent = new TransformComponent()
     val movementComponent = new MovementComponent()
+    val abilityComponent = new AbilityComponent()
+    abilityComponent.abilityType = AbilityComponent.TYPE_MISSLE
+    abilityComponent.preparation = 2f
+    abilityComponent.cooldown = 0f
+    abilityComponent.range = 128f
 
     entity.add(actorComponent)
     entity.add(transformComponent)
     entity.add(movementComponent)
+    entity.add(abilityComponent)
 
+    entity
+  }
+
+  def makeFireballAbility(): Entity = {
+    val entity = new Entity()
+    val abilityComponent = new AbilityComponent()
+    abilityComponent.abilityType = AbilityComponent.TYPE_MISSLE
+    abilityComponent.preparation = 2f
+    abilityComponent.cooldown = 0f
+    abilityComponent.range = 128f
+    abilityComponent.damage = 30
+
+    val animation = new Animation[TextureRegion](0.5f, iconFrames(6)(0))
+    val actor = new GameActor(animation)
+    actor.setSize(32f, 32f)
+    abilityComponent.actor = actor
+
+    entity.add(abilityComponent)
     entity
   }
 

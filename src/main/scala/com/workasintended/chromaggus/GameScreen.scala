@@ -43,6 +43,7 @@ class GameScreen extends ScreenAdapter {
     val jobSystem = new JobSystem()
     val behaviorSystem = new BehaviorSystem()
     val behaviorDebugginSystem = new BehaviorDebuggingSystem(ui)
+    val abilitySystem = new AbilitySystem()
 
     engine.addSystem(renderSystem)
     engine.addSystem(inputSystem)
@@ -51,6 +52,7 @@ class GameScreen extends ScreenAdapter {
     engine.addSystem(behaviorSystem)
     engine.addSystem(new DeathSystem())
     engine.addSystem(behaviorDebugginSystem)
+    engine.addSystem(abilitySystem)
 
     engine.addEntity(Factory.makeCharacter(new Vector2(0, 0)))
     engine.addEntity(Factory.makeCharacter(new Vector2(128, 128)))

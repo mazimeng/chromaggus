@@ -1,9 +1,7 @@
 package com.workasintended.chromaggus.job
 
-import com.badlogic.ashley.core.{ComponentMapper, Engine, Entity}
-import com.badlogic.gdx.math.Vector2
-import com.workasintended.chromaggus.Factory
-import com.workasintended.chromaggus.component.{AbilityComponent, DeadComponent, EffectComponent, MovementComponent}
+import com.badlogic.ashley.core.{ComponentMapper, Entity}
+import com.workasintended.chromaggus.component.{AbilityComponent, DeadComponent, MovementComponent}
 import com.workasintended.chromaggus.system.AbilitySystem
 
 /**

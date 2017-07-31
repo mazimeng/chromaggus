@@ -196,7 +196,6 @@ object Factory {
     val actor = new GameActor(animation)
     actor.setSize(32f, 32f)
 
-
     val actorComponent = new ActorComponent(actor)
     val transformComponent = new TransformComponent()
     val movementComponent = new MovementComponent()

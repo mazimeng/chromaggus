@@ -56,13 +56,6 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
         clearSelection(entity)
         if(!selectedComponentMapper.has(entity)) entity.add(new SelectedComponent())
       }
-      else if(Input.Buttons.MIDDLE == button) {
-        for (elem <- getEngine.getEntitiesFor(controllableFamily).asScala) {
-          val fireball = Factory.makeFireball(elem, new Vector2(x, y))
-
-          getEngine.addEntity(fireball)
-        }
-      }
       else if (Input.Buttons.RIGHT == button) {
         println(s"entities: ${getEngine.getEntities.size()}")
 
@@ -80,10 +73,12 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
         }
         else {
           if (!actor.isInstanceOf[GameActor]) return
-          val entity = actor.asInstanceOf[GameActor].entity
+          val target = actor.asInstanceOf[GameActor].entity
+          val abilitySystem = getEngine.getSystem(classOf[AbilitySystem])
 
           for (elem <- getEngine.getEntitiesFor(controllableFamily).asScala) {
-            val follow = new Use(elem, entity)
+            val fireball = Factory.makeFireball(elem, target)
+            val follow = new Use(elem, target, fireball, abilitySystem)
             val jobComponent = new JobComponent(follow)
 
             elem.add(jobComponent)

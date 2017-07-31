@@ -15,6 +15,7 @@ class AbilitySystem(family: Family) extends IteratingSystem(family) {
   def this() {
     this(Family.all(classOf[EffectComponent]).get())
   }
+
   override def processEntity(entity: Entity, delta: Float): scala.Unit = {
     val ac = abilityComponent.get(entity)
 
@@ -40,18 +41,31 @@ class AbilitySystem(family: Family) extends IteratingSystem(family) {
     }
   }
 
-  def use(ability: Entity, user: Entity, target: Entity): scala.Unit = {
+  def use(ability: Entity, user: Entity, target: Entity): Boolean = {
     val ac = abilityComponent.get(ability)
 
     if(ac.state == AbilityComponent.STATE_READY) {
       ac.state = AbilityComponent.STATE_PREPARING
+      getEngine.addEntity(ability)
+      true
     }
+    else false
+  }
+
+  def isReady(ability: Entity): Boolean = {
+    val ac = abilityComponent.get(ability)
+    ac.state == AbilityComponent.STATE_READY
+  }
+
+  def isPreparing(ability: Entity): Boolean = {
+    val ac = abilityComponent.get(ability)
+    ac.state == AbilityComponent.STATE_PREPARING
   }
 
   def isInRange(ability: Entity, user: Entity, pos: Vector2): Boolean = {
     val ac = abilityComponent.get(ability)
     val dst2 = pos.dst2(movementComponent.get(user).position)
 
-    ac.
+    dst2 <= ac.range2
   }
 }

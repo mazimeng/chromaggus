@@ -150,8 +150,10 @@ object Factory {
     entity
   }
 
-  def makeFireball(caster: Entity, dest: Vector2): Entity = {
+  def makeFireball(caster: Entity, target: Entity): Entity = {
+    val mc: ComponentMapper[MovementComponent] = ComponentMapper.getFor(classOf[MovementComponent])
     val entity = new Entity()
+    val dest = mc.get(target).position
     val moveTo = new MoveTo(entity, dest)
     val effect = new Circle(dest, 32f)
     val damage = 40
@@ -159,7 +161,6 @@ object Factory {
     moveTo.onDone = () => {
       val targetFamily: Family = Family.all(classOf[AttributeComponent]).get()
       val ac: ComponentMapper[AttributeComponent] = ComponentMapper.getFor(classOf[AttributeComponent])
-      val mc: ComponentMapper[MovementComponent] = ComponentMapper.getFor(classOf[MovementComponent])
       val entities = engine.getEntitiesFor(targetFamily).asScala
       for (elem <- entities) {
         if(elem != caster && effect.contains(mc.get(elem).position)) {
@@ -184,6 +185,25 @@ object Factory {
     entity.add(transformComponent)
     entity.add(movementComponent)
     entity.add(jobComponent)
+
+    entity
+  }
+
+  def makeFireball(): Entity = {
+    val entity = new Entity()
+
+    val animation = new Animation[TextureRegion](0.5f, iconFrames(6)(0))
+    val actor = new GameActor(animation)
+    actor.setSize(32f, 32f)
+
+
+    val actorComponent = new ActorComponent(actor)
+    val transformComponent = new TransformComponent()
+    val movementComponent = new MovementComponent()
+
+    entity.add(actorComponent)
+    entity.add(transformComponent)
+    entity.add(movementComponent)
 
     entity
   }

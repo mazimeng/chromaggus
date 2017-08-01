@@ -12,18 +12,22 @@ import com.workasintended.chromaggus.system.AbilitySystem
   * Created by mazimeng on 7/27/17.
   */
 class Attack extends LeafTask[Blackboard]{
-  val characterComponent = ComponentMapper.getFor(classOf[CharacterComponent])
+  val characterComponent: ComponentMapper[CharacterComponent] = ComponentMapper.getFor(classOf[CharacterComponent])
   override def execute(): Status = {
     if(getObject.enemies.nonEmpty) {
       if(getStatus != Status.RUNNING) {
         val cc = characterComponent.get(getObject.entity)
         val as = Factory.engine.getSystem(classOf[AbilitySystem])
         val attack = new Use(getObject.entity, getObject.enemies.head, cc.equippedAbility, as)
-        attack.onDone = () => reset()
+        attack.onDone = () => {
+          reset()
+          println("behavior: attack one. resetting")
+        }
 
         val jobComponent = new JobComponent(attack)
 
         getObject.entity.add(jobComponent)
+        println(s"behavior: attack job added, enemies: ${getObject.enemies.size}")
       }
 
       Status.RUNNING

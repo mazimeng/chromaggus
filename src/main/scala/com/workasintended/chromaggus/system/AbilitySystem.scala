@@ -1,6 +1,6 @@
 package com.workasintended.chromaggus.system
 
-import com.badlogic.ashley.core.{ComponentMapper, Entity, Family}
+import com.badlogic.ashley.core._
 import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.math.{Circle, Vector2}
 import com.workasintended.chromaggus.Factory.engine
@@ -15,29 +15,47 @@ import scala.collection.JavaConverters._
 class AbilitySystem(family: Family) extends IteratingSystem(family) {
   val abilityComponent: ComponentMapper[AbilityComponent] = ComponentMapper.getFor(classOf[AbilityComponent])
   val movementComponent: ComponentMapper[MovementComponent] = ComponentMapper.getFor(classOf[MovementComponent])
+  val deadComponent: ComponentMapper[DeadComponent] = ComponentMapper.getFor(classOf[DeadComponent])
 
   def this() {
-    this(Family.all(classOf[EffectComponent]).get())
+    this(Family.all(classOf[AbilityComponent]).get())
+  }
+
+
+  override def addedToEngine(engine: Engine): Unit = {
+    super.addedToEngine(engine)
+
+    engine.addEntityListener(family, new EntityListener() {
+      override def entityAdded(entity: Entity): Unit = {
+        println("ability added")
+      }
+
+      override def entityRemoved(entity: Entity): Unit = {
+        println("ability removed")
+      }
+    })
   }
 
   override def processEntity(entity: Entity, delta: Float): scala.Unit = {
     val ac = abilityComponent.get(entity)
 
-    if(ac.state == AbilityComponent.STATE_PREPARING) {
-      if(ac.progress >= ac.preparation) {
+    if (ac.state == AbilityComponent.STATE_PREPARING) {
+      if (ac.progress >= ac.preparation) {
+        println(s"casting is complete ${entity}")
         ac.state = AbilityComponent.STATE_COOLINGDOWN
         ac.progress = 0f
-
-        getEngine.addEntity(ac.effect)
+        ac.onUse()
+        println(s"ability used ${entity}")
       }
       else {
         ac.progress += delta
       }
     }
-    else if(ac.state == AbilityComponent.STATE_COOLINGDOWN) {
-      if(ac.progress >= ac.preparation) {
+    else if (ac.state == AbilityComponent.STATE_COOLINGDOWN) {
+      if (ac.progress >= ac.cooldown) {
         ac.state = AbilityComponent.STATE_READY
         ac.progress = 0f
+        println("cooled down")
       }
       else {
         ac.progress += delta
@@ -48,13 +66,20 @@ class AbilitySystem(family: Family) extends IteratingSystem(family) {
   def use(ability: Entity, user: Entity, target: Entity): Boolean = {
     val ac = abilityComponent.get(ability)
 
-    if(ac.state == AbilityComponent.STATE_READY) {
+    println(s"using ability: ${ac.state}")
+
+    if (ac.state == AbilityComponent.STATE_READY) {
+      println("start casting")
       ac.state = AbilityComponent.STATE_PREPARING
 
-      if(ac.abilityType == AbilityComponent.TYPE_MISSLE) {
-        val missile = makeMissile(ability, user, target)
-        getEngine.addEntity(missile)
-        println("fireball cast")
+      if (ac.abilityType == AbilityComponent.TYPE_MISSLE) {
+        ac.onUse = () => {
+          if(!deadComponent.has(target) && isInRange(ability, user, target)) {
+            val missile = makeMissile(ability, user, target)
+            println(s"missile added ${missile}")
+            getEngine.addEntity(missile)
+          }
+        }
       }
       true
     }
@@ -76,7 +101,7 @@ class AbilitySystem(family: Family) extends IteratingSystem(family) {
       val ac: ComponentMapper[AttributeComponent] = ComponentMapper.getFor(classOf[AttributeComponent])
       val entities = engine.getEntitiesFor(targetFamily).asScala
       for (elem <- entities) {
-        if(elem != user && effect.contains(mc.get(elem).position)) {
+        if (elem != user && effect.contains(mc.get(elem).position)) {
           ac.get(elem).health -= damage
         }
       }
@@ -96,9 +121,9 @@ class AbilitySystem(family: Family) extends IteratingSystem(family) {
     entity
   }
 
-  def isReady(ability: Entity): Boolean = {
+  def isCoolingDown(ability: Entity): Boolean = {
     val ac = abilityComponent.get(ability)
-    ac.state == AbilityComponent.STATE_READY
+    ac.state == AbilityComponent.STATE_COOLINGDOWN
   }
 
   def isPreparing(ability: Entity): Boolean = {
@@ -108,6 +133,14 @@ class AbilitySystem(family: Family) extends IteratingSystem(family) {
 
   def isInRange(ability: Entity, user: Entity, pos: Vector2): Boolean = {
     val ac = abilityComponent.get(ability)
+    val dst2 = pos.dst2(movementComponent.get(user).position)
+
+    dst2 <= ac.range2
+  }
+
+  def isInRange(ability: Entity, user: Entity, target: Entity): Boolean = {
+    val ac = abilityComponent.get(ability)
+    val pos = movementComponent.get(target).position
     val dst2 = pos.dst2(movementComponent.get(user).position)
 
     dst2 <= ac.range2

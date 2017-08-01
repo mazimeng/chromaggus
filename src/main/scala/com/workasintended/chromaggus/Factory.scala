@@ -117,6 +117,9 @@ object Factory {
 
     entity.add(characterComponent)
 
+    engine.addEntity(fireball)
+
+
     entity
   }
 
@@ -226,7 +229,7 @@ object Factory {
     abilityComponent.preparation = 2f
     abilityComponent.cooldown = 0f
     abilityComponent.range = 128f
-    abilityComponent.damage = 30
+    abilityComponent.damage = 70
 
     val animation = new Animation[TextureRegion](0.5f, iconFrames(6)(0))
     val actor = new GameActor(animation)

@@ -16,6 +16,7 @@ class DeathSystem(family: Family) extends IteratingSystem(family) {
   }
   override def processEntity(entity: Entity, deltaTime: Float): scala.Unit = {
     if(attributeComponent.get(entity).health <= 0 && !deadComponent.has(entity)) {
+      println("a character is dead")
       entity.add(new DeadComponent())
     }
     else if(attributeComponent.get(entity).health > 0 && deadComponent.has(entity)){

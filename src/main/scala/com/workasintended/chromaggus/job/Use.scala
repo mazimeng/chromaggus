@@ -16,23 +16,29 @@ class Use(val user: Entity,
   val abilityComponent: ComponentMapper[AbilityComponent] = ComponentMapper.getFor(classOf[AbilityComponent])
 
   val follow = new Follow(user, target)
-  val IDLE: Int = 0
-  val FOLLOWING: Int = 1
-  val PREPARING: Int = 2
-  val CASTED: Int = 3
-
-  var state = FOLLOWING
 
   override def update(delta: Float): scala.Unit = {
     super.update(delta)
 
     val pos = movementComponent.get(target).position
 
-    if(!abilitySystem.isInRange(ability, user, pos) && !abilitySystem.isPreparing(ability)) {
-      follow.update(delta)
+    if(deadComponent.has(target)) {
+      println("complete on death")
+      complete()
+      return
+    }
+
+    if (abilitySystem.isPreparing(ability)) {
+
     }
     else {
-      abilitySystem.use(ability, user, target)
+      if (abilitySystem.isInRange(ability, user, pos) && !abilitySystem.isCoolingDown(ability)) {
+        abilitySystem.use(ability, user, target)
+        complete()
+      }
+      else {
+        follow.update(delta)
+      }
     }
   }
 }

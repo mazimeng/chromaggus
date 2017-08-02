@@ -18,7 +18,7 @@ class AbilityComponent extends Component {
   var actor: GameActor = _
 
   var effect: Entity = _
-  var onUse: () => Unit = () => {}
+  var onUse: Option[() => Unit] = Some(() => {})
 }
 
 object AbilityComponent {

@@ -44,7 +44,7 @@ class AbilitySystem(family: Family) extends IteratingSystem(family) {
         println(s"casting is complete ${entity}")
         ac.state = AbilityComponent.STATE_COOLINGDOWN
         ac.progress = 0f
-        ac.onUse()
+        if(ac.onUse.nonEmpty) ac.onUse.get.apply()
         println(s"ability used ${entity}")
       }
       else {
@@ -73,13 +73,13 @@ class AbilitySystem(family: Family) extends IteratingSystem(family) {
       ac.state = AbilityComponent.STATE_PREPARING
 
       if (ac.abilityType == AbilityComponent.TYPE_MISSLE) {
-        ac.onUse = () => {
+        ac.onUse = Some(() => {
           if(!deadComponent.has(target) && isInRange(ability, user, target)) {
             val missile = makeMissile(ability, user, target)
             println(s"missile added ${missile}")
             getEngine.addEntity(missile)
           }
-        }
+        })
       }
       true
     }

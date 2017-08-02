@@ -5,10 +5,13 @@ import com.badlogic.gdx.ai.btree.BehaviorTree
 import com.badlogic.gdx.ai.btree.branch.Sequence
 import com.badlogic.gdx.ai.btree.decorator.Invert
 import com.badlogic.gdx.ai.btree.utils.BehaviorTreeLibraryManager
+import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.{Animation, BitmapFont, TextureRegion}
+import com.badlogic.gdx.maps.tiled.{TiledMap, TmxMapLoader}
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.{Circle, Vector2}
-import com.badlogic.gdx.scenes.scene2d.Touchable
+import com.badlogic.gdx.scenes.scene2d.{Stage, Touchable}
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.workasintended.chromaggus.actor.HealthActor
 import com.workasintended.chromaggus.behavior._
@@ -263,5 +266,12 @@ object Factory {
     tree.addChild(new Sequence(returnToStation, attack))
 
     tree
+  }
+
+  def makeWorldRenderer(stage: Stage): OrthogonalTiledMapRenderer = {
+    val map: TiledMap = new TmxMapLoader(new InternalFileHandleResolver()).load("episode01.tmx")
+    val unitScale: Float = 2f
+    val renderer: OrthogonalTiledMapRenderer = new OrthogonalTiledMapRenderer(map, unitScale, stage.getBatch())
+    renderer
   }
 }

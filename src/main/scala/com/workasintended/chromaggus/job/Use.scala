@@ -32,9 +32,11 @@ class Use(val user: Entity,
 
     }
     else {
-      if (abilitySystem.isInRange(ability, user, pos) && !abilitySystem.isCoolingDown(ability)) {
-        abilitySystem.use(ability, user, target)
-        complete()
+      if (abilitySystem.isInRange(ability, user, pos)) {
+        if(!abilitySystem.isCoolingDown(ability)) {
+          abilitySystem.use(ability, user, target)
+        }
+//        complete()
       }
       else {
         follow.update(delta)

@@ -4,15 +4,16 @@ import com.badlogic.ashley.core._
 import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.workasintended.chromaggus.component.{ActorComponent, TransformComponent}
 
 /**
   * Created by mazimeng on 7/20/17.
   */
-class RenderSystem(val stage: Stage, val ui: Stage, val family: Family) extends IteratingSystem(family) {
-  def this(stage: Stage, ui: Stage) {
-    this(stage, ui, Family.all(classOf[ActorComponent], classOf[TransformComponent]).get())
+class RenderSystem(val stage: Stage, val ui: Stage, val worldRenderer: OrthogonalTiledMapRenderer, val family: Family) extends IteratingSystem(family) {
+  def this(stage: Stage, ui: Stage, worldRenderer: OrthogonalTiledMapRenderer) {
+    this(stage, ui, worldRenderer, Family.all(classOf[ActorComponent], classOf[TransformComponent]).get())
   }
   private val actorComponentMapper = ComponentMapper.getFor(classOf[ActorComponent])
   private val transformComponentMapper = ComponentMapper.getFor(classOf[TransformComponent])
@@ -44,6 +45,7 @@ class RenderSystem(val stage: Stage, val ui: Stage, val family: Family) extends 
     stage.act(delta)
     ui.act(delta)
 
+    worldRenderer.render()
     stage.draw()
     ui.draw()
   }

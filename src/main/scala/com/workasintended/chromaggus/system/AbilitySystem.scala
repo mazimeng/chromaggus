@@ -44,7 +44,7 @@ class AbilitySystem(family: Family) extends IteratingSystem(family) {
         println(s"casting is complete ${entity}")
         ac.state = AbilityComponent.STATE_COOLINGDOWN
         ac.progress = 0f
-        if(ac.onUse.nonEmpty) ac.onUse.get.apply()
+        if(ac.onUse.nonEmpty && !deadComponent.has(entity)) ac.onUse.get.apply()
         println(s"ability used ${entity}")
       }
       else {

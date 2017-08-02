@@ -18,6 +18,7 @@ class DeathSystem(family: Family) extends IteratingSystem(family) {
     if(attributeComponent.get(entity).health <= 0 && !deadComponent.has(entity)) {
       println("a character is dead")
       entity.add(new DeadComponent())
+//      getEngine.removeEntity(entity)
     }
     else if(attributeComponent.get(entity).health > 0 && deadComponent.has(entity)){
       entity.remove(classOf[DeadComponent])

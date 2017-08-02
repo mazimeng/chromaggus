@@ -6,7 +6,7 @@ import com.badlogic.gdx.ai.btree.branch.Sequence
 import com.badlogic.gdx.ai.btree.decorator.Invert
 import com.badlogic.gdx.ai.btree.utils.BehaviorTreeLibraryManager
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver
-import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.{OrthographicCamera, Texture}
 import com.badlogic.gdx.graphics.g2d.{Animation, BitmapFont, TextureRegion}
 import com.badlogic.gdx.maps.tiled.{TiledMap, TmxMapLoader}
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
@@ -162,69 +162,6 @@ object Factory {
     entity
   }
 
-  def makeFireball(caster: Entity, target: Entity): Entity = {
-    val mc: ComponentMapper[MovementComponent] = ComponentMapper.getFor(classOf[MovementComponent])
-    val entity = new Entity()
-    val dest = mc.get(target).position
-    val moveTo = new MoveTo(entity, dest)
-    val effect = new Circle(dest, 32f)
-    val damage = 40
-    moveTo.speed = 256f
-    moveTo.onDone = () => {
-      val targetFamily: Family = Family.all(classOf[AttributeComponent]).get()
-      val ac: ComponentMapper[AttributeComponent] = ComponentMapper.getFor(classOf[AttributeComponent])
-      val entities = engine.getEntitiesFor(targetFamily).asScala
-      for (elem <- entities) {
-        if(elem != caster && effect.contains(mc.get(elem).position)) {
-          ac.get(elem).health -= damage
-        }
-      }
-      engine.removeEntity(entity)
-    }
-
-    val animation = new Animation[TextureRegion](0.5f, iconFrames(6)(0))
-    val actor = new GameActor(animation)
-    actor.setSize(32f, 32f)
-
-    val tc = transformComponentMapper.get(caster)
-
-    val actorComponent = new ActorComponent(actor)
-    val transformComponent = new TransformComponent(tc.position)
-    val movementComponent = new MovementComponent(tc.position)
-    val jobComponent = new JobComponent(moveTo)
-
-    entity.add(actorComponent)
-    entity.add(transformComponent)
-    entity.add(movementComponent)
-    entity.add(jobComponent)
-
-    entity
-  }
-
-  def makeFireball(): Entity = {
-    val entity = new Entity()
-
-    val animation = new Animation[TextureRegion](0.5f, iconFrames(6)(0))
-    val actor = new GameActor(animation)
-    actor.setSize(32f, 32f)
-
-    val actorComponent = new ActorComponent(actor)
-    val transformComponent = new TransformComponent()
-    val movementComponent = new MovementComponent()
-    val abilityComponent = new AbilityComponent()
-    abilityComponent.abilityType = AbilityComponent.TYPE_MISSLE
-    abilityComponent.preparation = 2f
-    abilityComponent.cooldown = 0f
-    abilityComponent.range = 128f
-
-    entity.add(actorComponent)
-    entity.add(transformComponent)
-    entity.add(movementComponent)
-    entity.add(abilityComponent)
-
-    entity
-  }
-
   def makeFireballAbility(): Entity = {
     val entity = new Entity()
     val abilityComponent = new AbilityComponent()
@@ -232,7 +169,7 @@ object Factory {
     abilityComponent.preparation = 2f
     abilityComponent.cooldown = 0f
     abilityComponent.range = 128f
-    abilityComponent.damage = 70
+    abilityComponent.damage = 10
 
     val animation = new Animation[TextureRegion](0.5f, iconFrames(6)(0))
     val actor = new GameActor(animation)
@@ -272,6 +209,9 @@ object Factory {
     val map: TiledMap = new TmxMapLoader(new InternalFileHandleResolver()).load("episode01.tmx")
     val unitScale: Float = 2f
     val renderer: OrthogonalTiledMapRenderer = new OrthogonalTiledMapRenderer(map, unitScale, stage.getBatch())
+    val camera = stage.getCamera.asInstanceOf[OrthographicCamera]
+    renderer.setView(camera)
+
     renderer
   }
 }

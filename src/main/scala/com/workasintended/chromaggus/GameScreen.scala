@@ -37,16 +37,14 @@ class GameScreen extends ScreenAdapter {
 
   def init(): scala.Unit = {
     initAssets()
-    val renderSystem = new RenderSystem(stage, ui)
+    val worldRenderer = Factory.makeWorldRenderer(stage)
+    val renderSystem = new RenderSystem(stage, ui, worldRenderer)
     val inputSystem = new ControlSystem(stage)
     val selectionHighlightSystem = new SelectionSystem()
     val jobSystem = new JobSystem()
     val behaviorSystem = new BehaviorSystem()
     val behaviorDebugginSystem = new BehaviorDebuggingSystem(ui)
     val abilitySystem = new AbilitySystem()
-
-    val worldRenderer = Factory.makeWorldRenderer(stage)
-    val worldRenderingSystem = new WorldRenderingSystem(worldRenderer)
 
     engine.addSystem(renderSystem)
     engine.addSystem(inputSystem)
@@ -56,7 +54,6 @@ class GameScreen extends ScreenAdapter {
     engine.addSystem(new DeathSystem())
     engine.addSystem(behaviorDebugginSystem)
     engine.addSystem(abilitySystem)
-    engine.addSystem(worldRenderingSystem)
 
     engine.addEntity(Factory.makeCharacter(new Vector2(0, 0)))
     engine.addEntity(Factory.makeCharacter(new Vector2(128, 128)))

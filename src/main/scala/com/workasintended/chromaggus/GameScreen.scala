@@ -55,6 +55,7 @@ class GameScreen extends ScreenAdapter {
     engine.addSystem(behaviorDebugginSystem)
     engine.addSystem(abilitySystem)
 
+    engine.addEntity(Factory.makeCity(new Vector2(13*32, 5*32)))
     engine.addEntity(Factory.makeCharacter(new Vector2(0, 0)))
     engine.addEntity(Factory.makeCharacter(new Vector2(128, 128)))
     engine.addEntity(Factory.makeCharacter(new Vector2(256, 256)))
@@ -73,6 +74,7 @@ class GameScreen extends ScreenAdapter {
   }
 
   def initAssets(): scala.Unit = {
+    Service.assetManager.load("city.png", classOf[Texture])
     Service.assetManager.load("icon.png", classOf[Texture])
     Service.assetManager.load("icon.06.png", classOf[Texture])
     Service.assetManager.load("spritesheet/selection.png", classOf[Texture])

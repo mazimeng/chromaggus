@@ -18,13 +18,11 @@ class AbilityComponent extends Component {
   var actor: GameActor = _
 
   var effect: Entity = _
-  var onUse: Option[() => Unit] = Some(() => {})
+//  var onUse: Option[() => Unit] = Some(() => {})
 }
 
 object AbilityComponent {
-  val STATE_INIT: Int = 0
   val STATE_READY: Int = 1
-  val STATE_PREPARING: Int = 2
   val STATE_COOLINGDOWN: Int = 3
   var TYPE_MISSLE = 1
 }

@@ -17,6 +17,7 @@ import scala.collection.JavaConverters._
 class ControlSystem(val stage: Stage) extends EntitySystem {
   private val selectedComponentMapper = ComponentMapper.getFor(classOf[SelectedComponent])
   private val characterComponent = ComponentMapper.getFor(classOf[CharacterComponent])
+  private val targetableComponent = ComponentMapper.getFor(classOf[TargetableComponent])
 
   val selectedFamily: Family = Family.all(classOf[SelectedComponent]).get()
   val controllableFamily: Family = Family.all(classOf[SelectedComponent]).exclude(classOf[DeadComponent]).get()
@@ -36,8 +37,6 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
       }
     }
     override def tap(event: InputEvent, x: Float, y: Float, count: Int, button: Int): scala.Unit = {
-      println(s"tapped: ${event}, ${x}, ${y}, ${count}, ${button}")
-
       if (Input.Buttons.LEFT == button) {
         val actor = stage.hit(x, y, true)
 
@@ -58,8 +57,6 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
         if(!selectedComponentMapper.has(entity)) entity.add(new SelectedComponent())
       }
       else if (Input.Buttons.RIGHT == button) {
-        println(s"entities: ${getEngine.getEntities.size()}")
-
         val actor = stage.hit(x, y, true)
 
         if(actor == null) {
@@ -75,6 +72,8 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
         else {
           if (!actor.isInstanceOf[GameActor]) return
           val target = actor.asInstanceOf[GameActor].entity
+          if (target == null || !targetableComponent.has(target)) return
+
           val abilitySystem = getEngine.getSystem(classOf[AbilitySystem])
 
           for (elem <- getEngine.getEntitiesFor(controllableFamily).asScala) {

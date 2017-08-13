@@ -32,7 +32,9 @@ object Factory {
   private lazy val char00 = new Texture("char00.png")
   private lazy val char01 = new Texture("char01.png")
   private lazy val char02 = new Texture("char02.png")
+  private lazy val cityTexture = new Texture("city.png")
 
+  private lazy val cityFrames = TextureRegion.split(cityTexture, cityTexture.getWidth, cityTexture.getHeight)
   private lazy val char01Frames = TextureRegion.split(char01, char01.getWidth / 3, char01.getHeight / 4)
   private lazy val char00Frames = TextureRegion.split(char00, char00.getWidth / 12, char00.getHeight / 8)
   private lazy val char02Frames = TextureRegion.split(char02, char00.getWidth / 12, char00.getHeight / 8)
@@ -103,6 +105,7 @@ object Factory {
     entity.add(new SelectableComponent())
     entity.add(behaviorComponent)
     entity.add(attributeComponent)
+    entity.add(new TargetableComponent())
 
     actor.entity = entity
 
@@ -122,6 +125,25 @@ object Factory {
 
     engine.addEntity(fireball)
 
+
+    entity
+  }
+
+  def makeCity(pos: Vector2 = new Vector2()): Entity = {
+    val entity = new Entity()
+
+    val animation = new Animation[TextureRegion](0.0f, cityFrames(0)(0))
+
+    val actor = new GameActor(animation)
+    actor.setSize(32, 32)
+    val actorComponent = new ActorComponent(actor)
+    val transformComponent = new TransformComponent(pos)
+
+    entity.add(actorComponent)
+    entity.add(transformComponent)
+    entity.add(new SelectableComponent())
+
+    actor.entity = entity
 
     entity
   }
@@ -167,9 +189,9 @@ object Factory {
     val abilityComponent = new AbilityComponent()
     abilityComponent.abilityType = AbilityComponent.TYPE_MISSLE
     abilityComponent.preparation = 2f
-    abilityComponent.cooldown = 0f
+    abilityComponent.cooldown = 1f
     abilityComponent.range = 128f
-    abilityComponent.damage = 10
+    abilityComponent.damage = 40
 
     val animation = new Animation[TextureRegion](0.5f, iconFrames(6)(0))
     val actor = new GameActor(animation)

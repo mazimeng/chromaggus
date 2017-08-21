@@ -23,9 +23,6 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
   val controllableFamily: Family = Family.all(classOf[SelectedComponent]).exclude(classOf[DeadComponent]).get()
   val selectableFamily: Family = Family.all(classOf[ActorComponent], classOf[SelectableComponent]).get()
 
-  val multiplexer = new InputMultiplexer()
-  multiplexer.addProcessor(stage)
-  Gdx.input.setInputProcessor(multiplexer)
 
   stage.addListener(new InputHandler())
 

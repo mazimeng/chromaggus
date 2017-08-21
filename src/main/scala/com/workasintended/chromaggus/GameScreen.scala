@@ -1,7 +1,7 @@
 package com.workasintended.chromaggus
 
 import com.badlogic.ashley.core.Engine
-import com.badlogic.gdx.ScreenAdapter
+import com.badlogic.gdx.{Gdx, InputMultiplexer, ScreenAdapter}
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.{OrthographicCamera, Texture}
 import com.badlogic.gdx.math.Vector2
@@ -39,7 +39,7 @@ class GameScreen extends ScreenAdapter {
     initAssets()
     val worldRenderer = Factory.makeWorldRenderer(stage)
     val renderSystem = new RenderSystem(stage, ui, worldRenderer)
-    val inputSystem = new ControlSystem(stage)
+    val controlSystem = new ControlSystem(stage)
     val selectionHighlightSystem = new SelectionSystem()
     val jobSystem = new JobSystem()
     val behaviorSystem = new BehaviorSystem()
@@ -47,7 +47,7 @@ class GameScreen extends ScreenAdapter {
     val abilitySystem = new AbilitySystem()
 
     engine.addSystem(renderSystem)
-    engine.addSystem(inputSystem)
+    engine.addSystem(controlSystem)
     engine.addSystem(selectionHighlightSystem)
     engine.addSystem(jobSystem)
     engine.addSystem(behaviorSystem)
@@ -59,13 +59,21 @@ class GameScreen extends ScreenAdapter {
     engine.addEntity(Factory.makeCharacter(new Vector2(0, 0)))
     engine.addEntity(Factory.makeCharacter(new Vector2(128, 128)))
     engine.addEntity(Factory.makeCharacter(new Vector2(256, 256)))
+
+    val uiBuilder = new UiBuilder(ui)
+    uiBuilder.initGui()
+
+    val multiplexer = new InputMultiplexer()
+    multiplexer.addProcessor(ui)
+    multiplexer.addProcessor(stage)
+    Gdx.input.setInputProcessor(multiplexer)
   }
 
   def makeFps(): Container[Label] = {
     val fps = new Container[Label]()
     fps.setFillParent(true)
     fps.setDebug(true, true)
-    fps.top().left()
+    fps.bottom().left()
 
     val skin: Skin = Service.assetManager.get("uiskin.json")
     val label = new Label("fpx: 0", skin)

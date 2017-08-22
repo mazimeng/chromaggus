@@ -53,6 +53,9 @@ class UiBuilder(val ui: Stage) {
 
     weapons(m)
     inventory(m)
+
+    m.row().bottom().left().expand()
+    m.add(new Label("hehe", skin))
   }
 
   def menu(): Table = {
@@ -107,6 +110,8 @@ class UiBuilder(val ui: Stage) {
     window.setResizable(true)
     window.setSize(320f, 200f)
     window.setVisible(false)
+    window.getTitleTable().add(new Label("close", skin))
+
     window.top().left()
 
     ui.addActor(window)

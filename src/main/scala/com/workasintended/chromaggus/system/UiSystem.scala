@@ -1,21 +1,30 @@
-//package com.workasintended.chromaggus.system
-//
-//import com.badlogic.ashley.core.{Engine, Entity, EntityListener, EntitySystem}
-//
-///**
-//  * Created by mazimeng on 7/30/17.
-//  */
-//class UiSystem extends EntitySystem {
-//  override def addedToEngine(engine: Engine): scala.Unit = {
-//    super.addedToEngine(engine)
-//    engine.addEntityListener(family, new EntityListener() {
-//      override def entityAdded(entity: Entity): scala.Unit = {
-//        val component = behaviorComponent.get(entity)
-//        component.behaviorTree.reset()
-//      }
-//
-//      override def entityRemoved(entity: Entity): scala.Unit = {
-//      }
-//    })
-//  }
-//}
+package com.workasintended.chromaggus.system
+
+import com.badlogic.ashley.core._
+import com.badlogic.gdx.scenes.scene2d.Stage
+import com.workasintended.chromaggus.component.{ActorComponent, SelectableComponent, SelectedComponent, TransformComponent}
+
+/**
+  * Created by mazimeng on 7/30/17.
+  */
+class UiSystem(val ui: Stage) extends EntitySystem {
+  private val actorComponentMapper = ComponentMapper.getFor(classOf[ActorComponent])
+  private val selectableComponentMapper = ComponentMapper.getFor(classOf[SelectableComponent])
+  private val selectedFamily: Family = Family.all(classOf[SelectedComponent], classOf[ActorComponent], classOf[SelectableComponent]).get()
+
+  override def addedToEngine(engine: Engine): Unit = {
+    super.addedToEngine(engine)
+
+    getEngine.addEntityListener(selectedFamily, new EntityListener {
+      override def entityAdded(entity: Entity): scala.Unit = {
+        val gameActor = actorComponentMapper.get(entity).actor
+        gameActor.addActor(selec tableComponentMapper.get(entity).selectionActor)
+      }
+
+      override def entityRemoved(entity: Entity): scala.Unit = {
+        val gameActor = actorComponentMapper.get(entity).actor
+        gameActor.removeActor(selectableComponentMapper.get(entity).selectionActor, false)
+      }
+    })
+  }
+}

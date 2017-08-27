@@ -7,6 +7,7 @@ import com.workasintended.chromaggus.GameActor
   * Created by mazimeng on 7/30/17.
   */
 class AbilityComponent extends Component {
+  var name: String = _
   var preparation: Float = 0f
   var cooldown: Float = 0f
   var range: Float = 0f
@@ -16,9 +17,11 @@ class AbilityComponent extends Component {
   var abilityType: Int = AbilityComponent.TYPE_MISSLE
   var damage: Int = 0
   var actor: GameActor = _
-
   var effect: Entity = _
 //  var onUse: Option[() => Unit] = Some(() => {})
+  var proficiency: Int = 0 // 0 - 100
+  var proficiencyGrowth: Int = 0
+  var isEquipped = false
 }
 
 object AbilityComponent {

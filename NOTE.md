@@ -59,12 +59,19 @@
   * weapons have durability
 * constructions
   * shops, craft armors and weapons
-  * church, to revive dead heroes
   * tavern, to recruit heroes ; gather information
   * jobs
   * dummies, train abilities
   * teleport?
   * lab, invent new items
+* items
+  * trade items
+  * drop items
+* death is permanent
+  
+# ui
+* character casting
+* ability cooldown
 
 # questions
 * do we do constructions?

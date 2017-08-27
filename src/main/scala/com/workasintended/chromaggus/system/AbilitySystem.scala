@@ -14,6 +14,7 @@ import scala.collection.JavaConverters._
   */
 class AbilitySystem(family: Family) extends IteratingSystem(family) {
   val abilityComponent: ComponentMapper[AbilityComponent] = ComponentMapper.getFor(classOf[AbilityComponent])
+  val abilityCollectionComponent: ComponentMapper[AbilityCollectionComponent] = ComponentMapper.getFor(classOf[AbilityCollectionComponent])
   val movementComponent: ComponentMapper[MovementComponent] = ComponentMapper.getFor(classOf[MovementComponent])
   val deadComponent: ComponentMapper[DeadComponent] = ComponentMapper.getFor(classOf[DeadComponent])
 
@@ -118,5 +119,13 @@ class AbilitySystem(family: Family) extends IteratingSystem(family) {
     val dst2 = pos.dst2(movementComponent.get(user).position)
 
     dst2 <= ac.range2
+  }
+
+  def getEquippedAbilities(user: Entity): Array[Entity] = {
+    val abilityCollection = abilityCollectionComponent.get(user)
+
+    val equippedAbilities: Array[Entity] = abilityCollection.abilities.filter(ent => ent != null && abilityComponent.get(ent).isEquipped)
+
+    equippedAbilities
   }
 }

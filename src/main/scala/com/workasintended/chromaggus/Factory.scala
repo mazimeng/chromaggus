@@ -28,6 +28,7 @@ object Factory {
   lazy val bitmapFont = new BitmapFont()
   private val transformComponentMapper = ComponentMapper.getFor(classOf[TransformComponent])
   private val movementComponentMapper = ComponentMapper.getFor(classOf[MovementComponent])
+  private val abilityComponent = ComponentMapper.getFor(classOf[AbilityComponent])
 
   private lazy val char00 = new Texture("char00.png")
   private lazy val char01 = new Texture("char01.png")
@@ -103,7 +104,7 @@ object Factory {
     entity.add(transformComponent)
     entity.add(movementComponent)
     entity.add(new SelectableComponent())
-    entity.add(behaviorComponent)
+//    entity.add(behaviorComponent)
     entity.add(attributeComponent)
     entity.add(new TargetableComponent())
 
@@ -112,16 +113,17 @@ object Factory {
     val skin: Skin = Service.assetManager.get("uiskin.json")
     val treeViewer = new BehaviorTreeViewer[Blackboard](behaviorComponent.behaviorTree, skin)
     val behaviorDebuggerComponent: BehaviorDebuggerComponent[Blackboard] = new BehaviorDebuggerComponent(treeViewer)
-    entity.add(behaviorDebuggerComponent)
+//    entity.add(behaviorDebuggerComponent)
 
     val healthActor = new HealthActor(attributeComponent)
     actor.addActor(healthActor)
 
-    val characterComponent = new CharacterComponent()
+    val abilityCollectionComponent = new AbilityCollectionComponent()
     val fireball = makeFireballAbility()
-    characterComponent.equippedAbility = fireball
+    abilityComponent.get(fireball).isEquipped = true
+    abilityCollectionComponent.abilities(0) = fireball
 
-    entity.add(characterComponent)
+    entity.add(abilityCollectionComponent)
 
     engine.addEntity(fireball)
 
@@ -192,6 +194,7 @@ object Factory {
     abilityComponent.cooldown = 1f
     abilityComponent.range = 128f
     abilityComponent.damage = 40
+    abilityComponent.name = "fireball"
 
     val animation = new Animation[TextureRegion](0.5f, iconFrames(6)(0))
     val actor = new GameActor(animation)
@@ -232,7 +235,7 @@ object Factory {
     val unitScale: Float = 2f
     val renderer: OrthogonalTiledMapRenderer = new OrthogonalTiledMapRenderer(map, unitScale, stage.getBatch())
     val camera = stage.getCamera.asInstanceOf[OrthographicCamera]
-    renderer.setView(camera)
+
 
     renderer
   }

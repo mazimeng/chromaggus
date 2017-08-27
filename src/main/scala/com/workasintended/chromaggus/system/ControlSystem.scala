@@ -16,13 +16,13 @@ import scala.collection.JavaConverters._
   */
 class ControlSystem(val stage: Stage) extends EntitySystem {
   private val selectedComponentMapper = ComponentMapper.getFor(classOf[SelectedComponent])
-  private val characterComponent = ComponentMapper.getFor(classOf[CharacterComponent])
+  private val acmm = ComponentMapper.getFor(classOf[AbilityCollectionComponent])
+  private val acm = ComponentMapper.getFor(classOf[AbilityComponent])
   private val targetableComponent = ComponentMapper.getFor(classOf[TargetableComponent])
 
   val selectedFamily: Family = Family.all(classOf[SelectedComponent]).get()
   val controllableFamily: Family = Family.all(classOf[SelectedComponent]).exclude(classOf[DeadComponent]).get()
   val selectableFamily: Family = Family.all(classOf[ActorComponent], classOf[SelectableComponent]).get()
-
 
   stage.addListener(new InputHandler())
 
@@ -33,7 +33,14 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
         elem.remove(classOf[SelectedComponent])
       }
     }
+
+    override def pan(event: InputEvent, x: Float, y: Float, deltaX: Float, deltaY: Float): Unit = {
+      val cameraSystem: CameraSystem = getEngine().getSystem(classOf[CameraSystem])
+      cameraSystem.moveBy(deltaX, deltaY)
+    }
+
     override def tap(event: InputEvent, x: Float, y: Float, count: Int, button: Int): scala.Unit = {
+      println(s"${x}, ${y}, ${count}, ${button}")
       if (Input.Buttons.LEFT == button) {
         val actor = stage.hit(x, y, true)
 
@@ -74,8 +81,9 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
           val abilitySystem = getEngine.getSystem(classOf[AbilitySystem])
 
           for (elem <- getEngine.getEntitiesFor(controllableFamily).asScala) {
-            val ability = characterComponent.get(elem).equippedAbility
-            val follow = new Use(elem, target, ability, abilitySystem)
+
+            val as = getEngine().getSystem(classOf[AbilitySystem])
+            val follow = new Use(elem, target, as.getEquippedAbilities(elem).head, abilitySystem)
             val jobComponent = new JobComponent(follow)
 
             elem.add(jobComponent)

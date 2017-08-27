@@ -1,4 +1,4 @@
-# dragon quest + warcraft + civilization
+# dragon quest + warcraft + civilization + zelda?
 
 # design
 * very slow paced game

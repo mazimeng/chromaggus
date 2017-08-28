@@ -1,3 +1,6 @@
+# TODO
+* ability ui
+
 # dragon quest + warcraft + civilization + zelda?
 
 # design

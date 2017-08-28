@@ -8,6 +8,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui._
 import com.badlogic.gdx.utils.viewport._
 import com.badlogic.gdx.{Gdx, InputMultiplexer, ScreenAdapter}
+import com.kotcrab.vis.ui.VisUI
 import com.workasintended.chromaggus.system._
 
 class GameScreen extends ScreenAdapter {
@@ -41,10 +42,6 @@ class GameScreen extends ScreenAdapter {
   def init(): scala.Unit = {
     initAssets()
 
-    //    stage.getViewport().setWorldSize(1280*0.6f, 720*0.6f)
-    //    stage.getCamera().asInstanceOf[OrthographicCamera].position.x = 0f
-    //    stage.getCamera().asInstanceOf[OrthographicCamera].position.y = 0f
-
     val worldRenderer = Factory.makeWorldRenderer(stage)
     val renderSystem = new RenderSystem(stage, ui, worldRenderer)
     val controlSystem = new ControlSystem(stage)
@@ -54,7 +51,12 @@ class GameScreen extends ScreenAdapter {
     val behaviorDebugginSystem = new BehaviorDebuggingSystem(ui)
     val abilitySystem = new AbilitySystem()
     val cameraSystem = new CameraSystem(stage)
+    val playerSystem = new PlayerSystem()
+    val abilityUiSystem = new AbilityUiSystem(ui)
 
+    playerSystem.factionName = "horde"
+
+    engine.addSystem(playerSystem)
     engine.addSystem(controlSystem)
     engine.addSystem(selectionHighlightSystem)
     engine.addSystem(jobSystem)
@@ -64,14 +66,13 @@ class GameScreen extends ScreenAdapter {
     engine.addSystem(abilitySystem)
     engine.addSystem(cameraSystem)
     engine.addSystem(renderSystem)
+    engine.addSystem(abilityUiSystem)
 
     engine.addEntity(Factory.makeCity(new Vector2(13 * 32, 5 * 32)))
     engine.addEntity(Factory.makeCharacter(new Vector2(0, 0)))
     engine.addEntity(Factory.makeCharacter(new Vector2(128, 128)))
     engine.addEntity(Factory.makeCharacter(new Vector2(256, 256)))
 
-    val uiBuilder = new UiBuilder(ui)
-    uiBuilder.initGui()
 
     val multiplexer = new InputMultiplexer()
     multiplexer.addProcessor(ui)
@@ -92,6 +93,8 @@ class GameScreen extends ScreenAdapter {
   }
 
   def initAssets(): scala.Unit = {
+    VisUI.load()
+
     Service.assetManager.load("city.png", classOf[Texture])
     Service.assetManager.load("icon.png", classOf[Texture])
     Service.assetManager.load("icon.06.png", classOf[Texture])

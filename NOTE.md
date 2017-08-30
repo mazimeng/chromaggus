@@ -1,5 +1,7 @@
 # TODO
 * ability ui
+* procedural world generation
+* city and economy
 
 # dragon quest + warcraft + civilization + zelda?
 

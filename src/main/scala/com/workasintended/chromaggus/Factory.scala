@@ -126,7 +126,6 @@ object Factory {
 
     val abilityCollectionComponent = new AbilityCollectionComponent()
     val fireball = makeFireballAbility()
-    abilityComponent.get(fireball).isEquipped = true
     abilityCollectionComponent.abilities(0) = fireball
 
     entity.add(abilityCollectionComponent)

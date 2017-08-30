@@ -18,17 +18,12 @@ class PlayerSystem() extends EntitySystem {
       override def entityAdded(entity: Entity): scala.Unit = {
         if(factionComponent.get(entity).faction == factionName) {
           characters.add(entity)
-
-          val aus = getEngine().getSystem(classOf[AbilityUiSystem])
-          aus.setCharacters(characters.toArray[Entity])
         }
       }
 
       override def entityRemoved(entity: Entity): scala.Unit = {
         if(factionComponent.get(entity).faction == factionName) {
           characters.remove(entity)
-          val aus = getEngine().getSystem(classOf[AbilityUiSystem])
-          aus.setCharacters(characters.toArray)
         }
       }
     })

@@ -28,12 +28,14 @@ class GameScreen extends ScreenAdapter {
   ui.addActor(fps)
 
   override def render(delta: Float): scala.Unit = {
+    val started = System.nanoTime()
     engine.update(delta)
-    timeElapsed += delta
+    timeElapsed += System.nanoTime() - started
     frameCount += 1
 
-    if (timeElapsed >= 0.5f) {
-      fps.getActor.setText(s"fps: ${frameCount / timeElapsed}")
+    if (frameCount >= 120) {
+      timeElapsed = timeElapsed / 1000000.0f
+      fps.getActor.setText(s"ms/frame: ${timeElapsed / frameCount}; fps: ${frameCount / (timeElapsed / 1000)}")
       timeElapsed = 0
       frameCount = 0
     }
@@ -87,7 +89,7 @@ class GameScreen extends ScreenAdapter {
     fps.bottom().left()
 
     val skin: Skin = Service.assetManager.get("uiskin.json")
-    val label = new Label("fpx: 0", skin)
+    val label = new Label("", skin)
     fps.setActor(label)
     fps
   }

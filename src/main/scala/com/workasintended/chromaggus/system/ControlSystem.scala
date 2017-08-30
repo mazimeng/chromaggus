@@ -26,14 +26,21 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
 
   stage.addListener(new InputHandler())
 
-  class InputHandler extends ActorGestureListener {
-    private def clearSelection(hitEntity: Entity = null): scala.Unit = {
-      for (elem <- getEngine.getEntitiesFor(selectedFamily).asScala.toArray) {
-        if(hitEntity == elem) return
-        elem.remove(classOf[SelectedComponent])
-      }
+  def clearSelection(hitEntity: Entity = null): Unit = {
+    for (elem <- getEngine.getEntitiesFor(selectedFamily).asScala.toArray) {
+      if (hitEntity == elem) return
+      elem.remove(classOf[SelectedComponent])
     }
+  }
 
+  def select(entity: Entity): Unit = {
+    if (!selectableFamily.matches(entity)) return
+
+    clearSelection(entity)
+    if (!selectedComponentMapper.has(entity)) entity.add(new SelectedComponent())
+  }
+
+  class InputHandler extends ActorGestureListener {
     override def pan(event: InputEvent, x: Float, y: Float, deltaX: Float, deltaY: Float): Unit = {
       val cameraSystem: CameraSystem = getEngine().getSystem(classOf[CameraSystem])
       cameraSystem.moveBy(deltaX, deltaY)
@@ -53,17 +60,14 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
 
         val entity = actor.asInstanceOf[GameActor].entity
 
-        if(entity == null) return
+        if (entity == null) return
 
-        if(!selectableFamily.matches(entity)) return
-
-        clearSelection(entity)
-        if(!selectedComponentMapper.has(entity)) entity.add(new SelectedComponent())
+        select(entity)
       }
       else if (Input.Buttons.RIGHT == button) {
         val actor = stage.hit(x, y, true)
 
-        if(actor == null) {
+        if (actor == null) {
           for (elem <- getEngine.getEntitiesFor(controllableFamily).asScala) {
             val moveTo = new MoveTo(elem, new Vector2(x, y))
             moveTo.onDone = () => elem.remove(classOf[ManualComponent])
@@ -83,13 +87,20 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
           for (elem <- getEngine.getEntitiesFor(controllableFamily).asScala) {
 
             val as = getEngine().getSystem(classOf[AbilitySystem])
-            val follow = new Use(elem, target, as.getEquippedAbilities(elem).head, abilitySystem)
-            val jobComponent = new JobComponent(follow)
+            val equippedAbilities = as.getEquippedAbilities(elem)
 
-            elem.add(jobComponent)
+            if (equippedAbilities.length > 0) {
+              val follow = new Use(elem, target, equippedAbilities.head, abilitySystem)
+              val jobComponent = new JobComponent(follow)
+
+              elem.add(jobComponent)
+
+            }
+
           }
         }
       }
     }
   }
+
 }

@@ -1,37 +1,93 @@
 package com.workasintended.chromaggus.system
 
+import java.util.function.Consumer
+
 import com.badlogic.ashley.core._
 import com.badlogic.gdx.scenes.scene2d.{Actor, InputEvent, Stage}
 import com.badlogic.gdx.scenes.scene2d.ui._
 import com.badlogic.gdx.scenes.scene2d.utils.{ChangeListener, ClickListener}
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener.ChangeEvent
-import com.badlogic.gdx.utils.Align
 import com.workasintended.chromaggus.Service
-import com.workasintended.chromaggus.component.NameComponent
+import com.workasintended.chromaggus.component._
 
 /**
   * Created by mazimeng on 7/30/17.
   */
 class AbilityUiSystem(val ui: Stage) extends EntitySystem {
   val nameComponent: ComponentMapper[NameComponent] = ComponentMapper.getFor(classOf[NameComponent])
+  val abilityCollectionComponent: ComponentMapper[AbilityCollectionComponent] = ComponentMapper.getFor(classOf[AbilityCollectionComponent])
+  val abilityComponent: ComponentMapper[AbilityComponent] = ComponentMapper.getFor(classOf[AbilityComponent])
   val skin: Skin = Service.assetManager.get("uiskin.json")
-  val characterList = new List[Entity](skin){
+
+  val characterList = new List[Entity](skin) {
     override def toString(obj: Entity): String = nameComponent.get(obj).toString()
   }
 
+  val abilityList = new List[String](skin)
+  val selectedFamily: Family = Family.all(classOf[SelectedComponent], classOf[ActorComponent], classOf[SelectableComponent]).get()
+
   override def addedToEngine(engine: Engine): Unit = {
     initGui()
+
+//    getEngine.addEntityListener(selectedFamily, new EntityListener {
+//      override def entityAdded(entity: Entity): scala.Unit = {
+//        characterList.getItems.forEach(new Consumer[Entity] {
+//          override def accept(t: Entity): Unit = {
+//            if(t == entity) {
+//              characterList.setSelected(t)
+//            }
+//          }
+//        })
+//      }
+//
+//      override def entityRemoved(entity: Entity): scala.Unit = {
+//        characterList.getSelection.clear()
+//      }
+//    })
   }
 
-  def setCharacters(characters: Array[Entity]): Unit = {
-    if(characters.length == 0) return
+  def fillCharacters(): Unit = {
+    val ps: PlayerSystem = getEngine().getSystem(classOf[PlayerSystem])
+    val characters = ps.characters.toArray
+
+    if (characters.length == 0) return
 
     val charArray = new com.badlogic.gdx.utils.Array[Entity](characters.length)
     for (i <- characters.indices) {
       charArray.add(characters(i))
     }
-
+    characterList.clearItems()
     characterList.setItems(charArray)
+    characterList.getSelection().clear()
+    abilityList.clearItems()
+  }
+
+  def fillAbilities(): Unit = {
+    if (characterList.getSelected == null) return
+
+    val character = characterList.getSelected
+    val acc = abilityCollectionComponent.get(character)
+
+    val names: Array[String] = acc.abilities.filter(_ != null).map(abilityComponent.get(_).name)
+    val nameArray = new com.badlogic.gdx.utils.Array[String](names.length)
+    nameArray.add("none")
+    for (i <- names.indices) {
+      nameArray.add(names(i))
+    }
+
+    abilityList.clearItems()
+    abilityList.setItems(nameArray)
+//    abilityList.getSelection().clear()
+
+    for (elem <- acc.abilities) {
+      if (elem == null) {}
+      else {
+        val ability = abilityComponent.get(elem)
+        if (ability.isEquipped) {
+          abilityList.setSelected(ability.name)
+        }
+      }
+    }
   }
 
   def initGui(): Unit = {
@@ -70,38 +126,40 @@ class AbilityUiSystem(val ui: Stage) extends EntitySystem {
 
     characterList.addListener(new ClickListener() {
       override def clicked(event: InputEvent, x: Float, y: Float): Unit = {
-        println(s"${characterList.getSelected()}")
+        println(s"characterList ${characterList.getSelected()}")
+        val cs = getEngine.getSystem(classOf[ControlSystem])
+        cs.select(characterList.getSelected)
+        fillAbilities()
       }
     })
 
-    characterList.getSelection().clear()
+    {
+      val scroll = new ScrollPane(characterList, skin)
+      window.add(scroll).top().left()
+    }
+    {
+      val scroll = new ScrollPane(abilityList, skin)
+      window.add(scroll).top().left()
 
-    characterList.addListener(new ChangeListener(){
-      override def changed(event: ChangeEvent, actor: Actor): Unit = {
-        println("char list changed")
-      }
-    })
+      abilityList.addListener(new ClickListener() {
+        override def clicked(event: InputEvent, x: Float, y: Float): Unit = {
+          println(s"abilityList selected ${abilityList.getSelected()}")
+          val character = characterList.getSelected
+          val acc = abilityCollectionComponent.get(character)
 
-    val scroll = new ScrollPane(characterList, skin)
-    window.add(scroll).top().left().expandY()
-
-    val abilitySlots = 2
-    val vg = new VerticalGroup()
-    vg.align(Align.top & Align.left)
-
-    for(_ <- 0 until abilitySlots) {
-      val abilityList = new SelectBox[String](skin)
-      abilityList.setItems("none", "fireball", "mortal strike", "shield wall")
-      vg.addActor(abilityList)
-
-      abilityList.addListener(new ChangeListener() {
-        def changed(event: ChangeEvent, actor: Actor): Unit = {
-          println(s"selected ${abilityList.getSelected()}")
+          for (elem <- acc.abilities) {
+            if (elem != null) {
+              if(abilityList.getSelected == "none") {
+                abilityComponent.get(elem).isEquipped = false
+              }
+              else if (abilityComponent.get(elem).name == abilityList.getSelected) {
+                abilityComponent.get(elem).isEquipped = true
+              }
+            }
+          }
         }
       })
     }
-
-    window.add(vg).top().left().expandX()
 
     val weaponsButton = new TextButton("characters", skin)
 
@@ -109,9 +167,9 @@ class AbilityUiSystem(val ui: Stage) extends EntitySystem {
       def changed(event: ChangeEvent, actor: Actor): Unit = {
         window.setVisible(!window.isVisible)
 
-        if(!window.isVisible) return
+        if (!window.isVisible) return
 
-
+        fillCharacters()
       }
     })
 

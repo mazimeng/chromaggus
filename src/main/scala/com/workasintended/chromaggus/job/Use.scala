@@ -39,14 +39,12 @@ class Use(val user: Entity,
     super.update(delta)
 
     val pos = movementComponent.get(target).position
+    val ac = abilityComponent.get(ability)
 
-    if (deadComponent.has(target)) {
-      println("complete on death")
+    if (deadComponent.has(target) || !ac.isEquipped) {
       complete()
       return
     }
-
-    val ac = abilityComponent.get(ability)
 
     if (useState == STATE_PREPARING) {
       if (useProgress >= ac.preparation) {

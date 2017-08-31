@@ -1,6 +1,6 @@
 package com.workasintended.chromaggus
 
-import com.badlogic.ashley.core.Engine
+import com.badlogic.ashley.core.{Engine, Entity}
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.math.Vector2
@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.ui._
 import com.badlogic.gdx.utils.viewport._
 import com.badlogic.gdx.{Gdx, InputMultiplexer, ScreenAdapter}
 import com.kotcrab.vis.ui.VisUI
+import com.workasintended.chromaggus.component.FactionComponent
 import com.workasintended.chromaggus.system._
 
 class GameScreen extends ScreenAdapter {
@@ -44,6 +45,11 @@ class GameScreen extends ScreenAdapter {
   def init(): scala.Unit = {
     initAssets()
 
+    val faction = new Entity()
+    val factionComponent = new FactionComponent("horde")
+    faction.add(factionComponent)
+    engine.addEntity(faction)
+
     val worldRenderer = Factory.makeWorldRenderer(stage)
     val renderSystem = new RenderSystem(stage, ui, worldRenderer)
     val controlSystem = new ControlSystem(stage)
@@ -53,10 +59,11 @@ class GameScreen extends ScreenAdapter {
     val behaviorDebugginSystem = new BehaviorDebuggingSystem(ui)
     val abilitySystem = new AbilitySystem()
     val cameraSystem = new CameraSystem(stage)
-    val playerSystem = new PlayerSystem()
+    val playerSystem = new PlayerSystem(faction)
     val abilityUiSystem = new AbilityUiSystem(ui)
+    val factionSystem = new FactionSystem()
 
-    playerSystem.factionName = "horde"
+    factionSystem.factionIncomeChanged.addObserver(abilityUiSystem.goldObserver)
 
     engine.addSystem(playerSystem)
     engine.addSystem(controlSystem)
@@ -69,11 +76,25 @@ class GameScreen extends ScreenAdapter {
     engine.addSystem(cameraSystem)
     engine.addSystem(renderSystem)
     engine.addSystem(abilityUiSystem)
+    engine.addSystem(factionSystem)
 
-    engine.addEntity(Factory.makeCity(new Vector2(13 * 32, 5 * 32)))
-    engine.addEntity(Factory.makeCharacter(new Vector2(0, 0)))
-    engine.addEntity(Factory.makeCharacter(new Vector2(128, 128)))
-    engine.addEntity(Factory.makeCharacter(new Vector2(256, 256)))
+    val city = Factory.makeCity(new Vector2(13 * 32, 5 * 32))
+    engine.addEntity(city)
+    factionComponent.cities.add(city)
+
+    {
+      val character = Factory.makeCharacter(new Vector2(0, 0))
+      factionComponent.characters.add(character)
+      engine.addEntity(character)
+    }
+    {
+      val character = Factory.makeCharacter(new Vector2(0, 0))
+      factionComponent.characters.add(character)
+      engine.addEntity(character)
+    }
+
+    //    engine.addEntity(Factory.makeCharacter(new Vector2(128, 128)))
+//    engine.addEntity(Factory.makeCharacter(new Vector2(256, 256)))
 
 
     val multiplexer = new InputMultiplexer()

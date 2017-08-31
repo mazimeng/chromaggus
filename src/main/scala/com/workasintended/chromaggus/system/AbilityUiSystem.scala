@@ -1,6 +1,6 @@
 package com.workasintended.chromaggus.system
 
-import java.util.function.Consumer
+import java.util.{Observable, Observer}
 
 import com.badlogic.ashley.core._
 import com.badlogic.gdx.scenes.scene2d.{Actor, InputEvent, Stage}
@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.{ChangeListener, ClickListener}
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener.ChangeEvent
 import com.workasintended.chromaggus.Service
 import com.workasintended.chromaggus.component._
+import com.workasintended.chromaggus.event.FactionIncomeChanged
 
 /**
   * Created by mazimeng on 7/30/17.
@@ -18,6 +19,18 @@ class AbilityUiSystem(val ui: Stage) extends EntitySystem {
   val abilityCollectionComponent: ComponentMapper[AbilityCollectionComponent] = ComponentMapper.getFor(classOf[AbilityCollectionComponent])
   val abilityComponent: ComponentMapper[AbilityComponent] = ComponentMapper.getFor(classOf[AbilityComponent])
   val skin: Skin = Service.assetManager.get("uiskin.json")
+  val factionComponent: ComponentMapper[FactionComponent] = ComponentMapper.getFor(classOf[FactionComponent])
+
+  val goldObserver: Observer = new Observer {
+    override def update(o: Observable, arg: scala.Any): Unit = {
+      val changed = arg.asInstanceOf[FactionIncomeChanged]
+      val faction = factionComponent.get(changed.faction)
+      val ps: PlayerSystem = getEngine().getSystem(classOf[PlayerSystem])
+      if(ps.faction == changed.faction) {
+        goldIndicator.setText(s"gold: ${faction.gold}")
+      }
+    }
+  }
 
   val characterList = new List[Entity](skin) {
     override def toString(obj: Entity): String = nameComponent.get(obj).toString()
@@ -25,30 +38,15 @@ class AbilityUiSystem(val ui: Stage) extends EntitySystem {
 
   val abilityList = new List[String](skin)
   val selectedFamily: Family = Family.all(classOf[SelectedComponent], classOf[ActorComponent], classOf[SelectableComponent]).get()
+  val goldIndicator: Label = new Label("gold: ", skin)
 
   override def addedToEngine(engine: Engine): Unit = {
     initGui()
-
-//    getEngine.addEntityListener(selectedFamily, new EntityListener {
-//      override def entityAdded(entity: Entity): scala.Unit = {
-//        characterList.getItems.forEach(new Consumer[Entity] {
-//          override def accept(t: Entity): Unit = {
-//            if(t == entity) {
-//              characterList.setSelected(t)
-//            }
-//          }
-//        })
-//      }
-//
-//      override def entityRemoved(entity: Entity): scala.Unit = {
-//        characterList.getSelection.clear()
-//      }
-//    })
   }
 
   def fillCharacters(): Unit = {
     val ps: PlayerSystem = getEngine().getSystem(classOf[PlayerSystem])
-    val characters = ps.characters.toArray
+    val characters = factionComponent.get(ps.faction).characters.toArray
 
     if (characters.length == 0) return
 
@@ -77,7 +75,7 @@ class AbilityUiSystem(val ui: Stage) extends EntitySystem {
 
     abilityList.clearItems()
     abilityList.setItems(nameArray)
-//    abilityList.getSelection().clear()
+    //    abilityList.getSelection().clear()
 
     for (elem <- acc.abilities) {
       if (elem == null) {}
@@ -94,6 +92,8 @@ class AbilityUiSystem(val ui: Stage) extends EntitySystem {
     val m = menu()
     characters(m)
     items(m)
+
+    m.add(goldIndicator)
   }
 
   def menu(): Table = {
@@ -149,7 +149,7 @@ class AbilityUiSystem(val ui: Stage) extends EntitySystem {
 
           for (elem <- acc.abilities) {
             if (elem != null) {
-              if(abilityList.getSelected == "none") {
+              if (abilityList.getSelected == "none") {
                 abilityComponent.get(elem).isEquipped = false
               }
               else if (abilityComponent.get(elem).name == abilityList.getSelected) {

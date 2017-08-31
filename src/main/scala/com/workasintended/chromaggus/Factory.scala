@@ -90,7 +90,7 @@ object Factory {
     entity
   }
 
-  def makeCharacter(faction: Entity, pos: Vector2 = new Vector2()): Entity = {
+  def makeCharacter(pos: Vector2 = new Vector2()): Entity = {
     val entity = new Entity()
 
     val animation = new Animation[TextureRegion](0.5f, char01Frames(0)(0), char01Frames(0)(2))
@@ -117,7 +117,6 @@ object Factory {
     //    entity.add(behaviorComponent)
     entity.add(attributeComponent)
     entity.add(new TargetableComponent())
-    entity.add(new FactionComponent("horde"))
     entity.add(new NameComponent(randomNames.next()))
 
     actor.entity = entity
@@ -142,7 +141,7 @@ object Factory {
     entity
   }
 
-  def makeCity(faction: Entity, pos: Vector2 = new Vector2()): Entity = {
+  def makeCity(pos: Vector2 = new Vector2()): Entity = {
     val entity = new Entity()
 
     val animation = new Animation[TextureRegion](0.0f, cityFrames(0)(0))
@@ -153,7 +152,6 @@ object Factory {
     val transformComponent = new TransformComponent(pos)
     val cityComponent = new CityComponent()
     cityComponent.income = 10
-    cityComponent.faction = Some(faction)
 
     entity.add(actorComponent)
     entity.add(transformComponent)

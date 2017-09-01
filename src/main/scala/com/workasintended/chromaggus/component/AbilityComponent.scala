@@ -19,8 +19,8 @@ class AbilityComponent extends Component {
   var actor: GameActor = _
   var effect: Entity = _
 //  var onUse: Option[() => Unit] = Some(() => {})
-  var proficiency: Int = 0 // 0 - 100
-  var proficiencyGrowth: Int = 0
+  var proficiency: Float = 0 // 0 - 100
+  var proficiencyGrowth: Float = 0.1f //increment per use
   var isEquipped = false
 }
 

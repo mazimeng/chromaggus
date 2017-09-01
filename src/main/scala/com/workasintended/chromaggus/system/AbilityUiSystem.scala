@@ -9,7 +9,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.{ChangeListener, ClickListener}
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener.ChangeEvent
 import com.workasintended.chromaggus.Service
 import com.workasintended.chromaggus.component._
-import com.workasintended.chromaggus.event.FactionIncomeChanged
+import com.workasintended.chromaggus.event.EventHandler
+import com.workasintended.chromaggus.event.Events.FactionIncomeChanged
 
 /**
   * Created by mazimeng on 7/30/17.
@@ -21,12 +22,11 @@ class AbilityUiSystem(val ui: Stage) extends EntitySystem {
   val skin: Skin = Service.assetManager.get("uiskin.json")
   val factionComponent: ComponentMapper[FactionComponent] = ComponentMapper.getFor(classOf[FactionComponent])
 
-  val goldObserver: Observer = new Observer {
-    override def update(o: Observable, arg: scala.Any): Unit = {
-      val changed = arg.asInstanceOf[FactionIncomeChanged]
-      val faction = factionComponent.get(changed.faction)
+  val goldObserver = new EventHandler[FactionIncomeChanged] {
+    override def handle(arg: FactionIncomeChanged): Unit = {
+      val faction = factionComponent.get(arg.faction)
       val ps: PlayerSystem = getEngine().getSystem(classOf[PlayerSystem])
-      if(ps.faction == changed.faction) {
+      if(ps.faction == arg.faction) {
         goldIndicator.setText(s"gold: ${faction.gold}")
       }
     }

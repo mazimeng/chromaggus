@@ -36,7 +36,7 @@ class GameScreen extends ScreenAdapter {
 
     if (frameCount >= 120) {
       timeElapsed = timeElapsed / 1000000.0f
-      fps.getActor.setText(s"ms/frame: ${timeElapsed / frameCount}; fps: ${frameCount / (timeElapsed / 1000)}")
+      fps.getActor.setText(s"ms/frame: ${timeElapsed / frameCount}; fps: ${frameCount / (timeElapsed / 1000)}; ${Gdx.graphics.getFramesPerSecond}")
       timeElapsed = 0
       frameCount = 0
     }
@@ -88,7 +88,7 @@ class GameScreen extends ScreenAdapter {
       engine.addEntity(character)
     }
     {
-      val character = Factory.makeCharacter(new Vector2(0, 0))
+      val character = Factory.makeCharacter(new Vector2(32, 32))
       factionComponent.characters.add(character)
       engine.addEntity(character)
     }

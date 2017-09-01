@@ -5,17 +5,13 @@ import java.util.Observable
 import com.badlogic.ashley.core._
 import com.badlogic.ashley.systems.IteratingSystem
 import com.workasintended.chromaggus.component.{CityComponent, FactionComponent}
-import com.workasintended.chromaggus.event.FactionIncomeChanged
+import com.workasintended.chromaggus.event.Events.FactionIncomeChanged
+import com.workasintended.chromaggus.event.{Event, Events}
 
 class FactionSystem extends IteratingSystem(Family.all(classOf[FactionComponent]).get()) {
   val factionComponent: ComponentMapper[FactionComponent] = ComponentMapper.getFor(classOf[FactionComponent])
   val cityComponent: ComponentMapper[CityComponent] = ComponentMapper.getFor(classOf[CityComponent])
-  val factionIncomeChanged = new Observable() {
-    def trigger(arg: FactionIncomeChanged): Unit = {
-      setChanged()
-      notifyObservers(arg)
-    }
-  }
+  val factionIncomeChanged = new Event[Events.FactionIncomeChanged]
 
   val tax = new Interval(1f, (faction: Entity) => {
     val fc = factionComponent.get(faction)
@@ -23,14 +19,14 @@ class FactionSystem extends IteratingSystem(Family.all(classOf[FactionComponent]
       fc.gold += cityComponent.get(elem).income
     }
 
-    factionIncomeChanged.trigger(FactionIncomeChanged(faction))
+    factionIncomeChanged.fire(FactionIncomeChanged(faction))
   })
 
   val salary = new Interval(10f, (faction: Entity) => {
     val fc = factionComponent.get(faction)
     fc.gold -= 50 * fc.characters.size
 
-    factionIncomeChanged.trigger(FactionIncomeChanged(faction))
+    factionIncomeChanged.fire(FactionIncomeChanged(faction))
   })
 
   override def processEntity(entity: Entity, deltaTime: Float): Unit = {

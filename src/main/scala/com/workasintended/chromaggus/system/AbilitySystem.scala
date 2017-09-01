@@ -5,36 +5,37 @@ import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.math.{Circle, Vector2}
 import com.workasintended.chromaggus.Factory.engine
 import com.workasintended.chromaggus.component._
+import com.workasintended.chromaggus.event.{Event, Events}
 import com.workasintended.chromaggus.job.MoveTo
-
-import scala.collection.JavaConverters._
 
 /**
   * Created by mazimeng on 7/30/17.
   */
 class AbilitySystem(family: Family) extends IteratingSystem(family) {
   val abilityComponent: ComponentMapper[AbilityComponent] = ComponentMapper.getFor(classOf[AbilityComponent])
+  val attributeComponent: ComponentMapper[AttributeComponent] = ComponentMapper.getFor(classOf[AttributeComponent])
   val abilityCollectionComponent: ComponentMapper[AbilityCollectionComponent] = ComponentMapper.getFor(classOf[AbilityCollectionComponent])
   val movementComponent: ComponentMapper[MovementComponent] = ComponentMapper.getFor(classOf[MovementComponent])
   val deadComponent: ComponentMapper[DeadComponent] = ComponentMapper.getFor(classOf[DeadComponent])
+  val abilityUsed = new Event[Events.AbilityUsed]
 
   def this() {
     this(Family.all(classOf[AbilityComponent]).get())
   }
 
-//  override def addedToEngine(engine: Engine): Unit = {
-//    super.addedToEngine(engine)
-//
-//    engine.addEntityListener(family, new EntityListener() {
-//      override def entityAdded(entity: Entity): Unit = {
-//        println("ability added")
-//      }
-//
-//      override def entityRemoved(entity: Entity): Unit = {
-//        println("ability removed")
-//      }
-//    })
-//  }
+  //  override def addedToEngine(engine: Engine): Unit = {
+  //    super.addedToEngine(engine)
+  //
+  //    engine.addEntityListener(family, new EntityListener() {
+  //      override def entityAdded(entity: Entity): Unit = {
+  //        println("ability added")
+  //      }
+  //
+  //      override def entityRemoved(entity: Entity): Unit = {
+  //        println("ability removed")
+  //      }
+  //    })
+  //  }
 
   override def processEntity(entity: Entity, delta: Float): scala.Unit = {
     val ac = abilityComponent.get(entity)
@@ -61,39 +62,43 @@ class AbilitySystem(family: Family) extends IteratingSystem(family) {
     true
   }
 
-  def makeUsable(ability: Entity, user: Entity, target: Entity): Entity = {
-    val mc: ComponentMapper[MovementComponent] = ComponentMapper.getFor(classOf[MovementComponent])
-    val ac: ComponentMapper[AbilityComponent] = ComponentMapper.getFor(classOf[AbilityComponent])
-    val ab = ac.get(ability)
-    val effect = new Entity()
-    val dest = mc.get(target).position
-    val moveTo = new MoveTo(effect, dest)
+  def effect(ability: Entity, user: Entity, target: Entity, effect: Entity): Unit = {
+    val dest = movementComponent.get(target).position
     val effectArea = new Circle(dest, 32f)
-    val damage = ab.damage
+    val abc = abilityComponent.get(ability)
+    val attr = attributeComponent.get(target)
+
+    val effectMc = movementComponent.get(effect)
+    if(effectArea.contains(effectMc.position)) {
+      attr.health -= abc.damage
+
+      abc.proficiency += abc.proficiencyGrowth
+      abilityUsed.fire(Events.AbilityUsed(ability))
+    }
+  }
+
+  def makeUsable(ability: Entity, user: Entity, target: Entity): Entity = {
+    val usable = new Entity()
+    val dest = movementComponent.get(target).position
+    val moveTo = new MoveTo(usable, dest)
+    val ab = abilityComponent.get(ability)
     moveTo.speed = 256f
     moveTo.onDone = () => {
-      val targetFamily: Family = Family.all(classOf[AttributeComponent]).get()
-      val ac: ComponentMapper[AttributeComponent] = ComponentMapper.getFor(classOf[AttributeComponent])
-      val entities = engine.getEntitiesFor(targetFamily).asScala
-      for (elem <- entities) {
-        if (elem != user && effectArea.contains(mc.get(elem).position)) {
-          ac.get(elem).health -= damage
-        }
-      }
-      engine.removeEntity(effect)
+      effect(ability, user, target, usable)
+      engine.removeEntity(usable)
     }
 
-    val actorComponent = new ActorComponent(ab.actor)
-    val transformComponent = new TransformComponent(mc.get(user).position)
-    val movementComponent = new MovementComponent(mc.get(user).position)
-    val jobComponent = new JobComponent(moveTo)
+    val ac = new ActorComponent(ab.actor)
+    val tc = new TransformComponent(movementComponent.get(user).position)
+    val mc = new MovementComponent(movementComponent.get(user).position)
+    val jc = new JobComponent(moveTo)
 
-    effect.add(actorComponent)
-    effect.add(transformComponent)
-    effect.add(movementComponent)
-    effect.add(jobComponent)
+    usable.add(ac)
+    usable.add(tc)
+    usable.add(mc)
+    usable.add(jc)
 
-    effect
+    usable
   }
 
   def isCoolingDown(ability: Entity): Boolean = {

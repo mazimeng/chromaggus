@@ -16,27 +16,38 @@ import scala.collection.JavaConverters._
   */
 class ControlSystem(val stage: Stage) extends EntitySystem {
   private val selectedComponentMapper = ComponentMapper.getFor(classOf[SelectedComponent])
-  private val characterComponent = ComponentMapper.getFor(classOf[CharacterComponent])
+  private val acmm = ComponentMapper.getFor(classOf[AbilityCollectionComponent])
+  private val acm = ComponentMapper.getFor(classOf[AbilityComponent])
   private val targetableComponent = ComponentMapper.getFor(classOf[TargetableComponent])
 
   val selectedFamily: Family = Family.all(classOf[SelectedComponent]).get()
   val controllableFamily: Family = Family.all(classOf[SelectedComponent]).exclude(classOf[DeadComponent]).get()
   val selectableFamily: Family = Family.all(classOf[ActorComponent], classOf[SelectableComponent]).get()
 
-  val multiplexer = new InputMultiplexer()
-  multiplexer.addProcessor(stage)
-  Gdx.input.setInputProcessor(multiplexer)
-
   stage.addListener(new InputHandler())
 
-  class InputHandler extends ActorGestureListener {
-    private def clearSelection(hitEntity: Entity = null): scala.Unit = {
-      for (elem <- getEngine.getEntitiesFor(selectedFamily).asScala.toArray) {
-        if(hitEntity == elem) return
-        elem.remove(classOf[SelectedComponent])
-      }
+  def clearSelection(hitEntity: Entity = null): Unit = {
+    for (elem <- getEngine.getEntitiesFor(selectedFamily).asScala.toArray) {
+      if (hitEntity == elem) return
+      elem.remove(classOf[SelectedComponent])
     }
+  }
+
+  def select(entity: Entity): Unit = {
+    if (!selectableFamily.matches(entity)) return
+
+    clearSelection(entity)
+    if (!selectedComponentMapper.has(entity)) entity.add(new SelectedComponent())
+  }
+
+  class InputHandler extends ActorGestureListener {
+    override def pan(event: InputEvent, x: Float, y: Float, deltaX: Float, deltaY: Float): Unit = {
+      val cameraSystem: CameraSystem = getEngine().getSystem(classOf[CameraSystem])
+      cameraSystem.moveBy(deltaX, deltaY)
+    }
+
     override def tap(event: InputEvent, x: Float, y: Float, count: Int, button: Int): scala.Unit = {
+      println(s"${x}, ${y}, ${count}, ${button}")
       if (Input.Buttons.LEFT == button) {
         val actor = stage.hit(x, y, true)
 
@@ -49,17 +60,14 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
 
         val entity = actor.asInstanceOf[GameActor].entity
 
-        if(entity == null) return
+        if (entity == null) return
 
-        if(!selectableFamily.matches(entity)) return
-
-        clearSelection(entity)
-        if(!selectedComponentMapper.has(entity)) entity.add(new SelectedComponent())
+        select(entity)
       }
       else if (Input.Buttons.RIGHT == button) {
         val actor = stage.hit(x, y, true)
 
-        if(actor == null) {
+        if (actor == null) {
           for (elem <- getEngine.getEntitiesFor(controllableFamily).asScala) {
             val moveTo = new MoveTo(elem, new Vector2(x, y))
             moveTo.onDone = () => elem.remove(classOf[ManualComponent])
@@ -77,14 +85,22 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
           val abilitySystem = getEngine.getSystem(classOf[AbilitySystem])
 
           for (elem <- getEngine.getEntitiesFor(controllableFamily).asScala) {
-            val ability = characterComponent.get(elem).equippedAbility
-            val follow = new Use(elem, target, ability, abilitySystem)
-            val jobComponent = new JobComponent(follow)
 
-            elem.add(jobComponent)
+            val as = getEngine().getSystem(classOf[AbilitySystem])
+            val equippedAbilities = as.getEquippedAbilities(elem)
+
+            if (equippedAbilities.length > 0) {
+              val follow = new Use(elem, target, equippedAbilities.head, abilitySystem)
+              val jobComponent = new JobComponent(follow)
+
+              elem.add(jobComponent)
+
+            }
+
           }
         }
       }
     }
   }
+
 }

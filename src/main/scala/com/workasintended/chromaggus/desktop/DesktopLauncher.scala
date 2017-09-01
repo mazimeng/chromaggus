@@ -6,8 +6,8 @@ import com.workasintended.chromaggus.ChromaggusGame
 object DesktopLauncher {
 	def main (args: Array[String]): scala.Unit = {
 		val config = new LwjglApplicationConfiguration
-		config.width = 800
-		config.height = 600
+		config.width = 1280
+		config.height = 720
 
 //		val gameConfiguration = new DesktopGameConfiguration
 

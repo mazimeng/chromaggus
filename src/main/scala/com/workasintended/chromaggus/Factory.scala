@@ -28,6 +28,7 @@ object Factory {
   lazy val bitmapFont = new BitmapFont()
   private val transformComponentMapper = ComponentMapper.getFor(classOf[TransformComponent])
   private val movementComponentMapper = ComponentMapper.getFor(classOf[MovementComponent])
+  private val abilityComponent = ComponentMapper.getFor(classOf[AbilityComponent])
 
   private lazy val char00 = new Texture("char00.png")
   private lazy val char01 = new Texture("char01.png")
@@ -42,30 +43,34 @@ object Factory {
   private lazy val icon = Service.assetManager.get("icon.png").asInstanceOf[Texture]
   private lazy val iconFrames = TextureRegion.split(icon, icon.getWidth / 16, icon.getHeight / 39)
 
-//  def makeSelection(target: Entity): Entity = {
-//    val transformComponentMapper = ComponentMapper.getFor(classOf[TransformComponent])
-//
-//    val itemTexture: Texture = Service.assetManager.get("spritesheet/selection.png")
-//    val selectionTextureRegions = TextureRegion.split(itemTexture, itemTexture.getWidth() / 2, itemTexture.getHeight / 1)
-//    val selectionAnimation = new Animation[TextureRegion](0.5f, selectionTextureRegions(0)(0), selectionTextureRegions(0)(1))
-//
-//    val targetTransformComponent = transformComponentMapper.get(target)
-//
-//    val actor = new GameActor(selectionAnimation)
-//    actor.setSize(32, 32)
-//    actor.setTouchable(Touchable.disabled)
-//
-//    val actorComponent = new ActorComponent(actor)
-//    val transformComponent = new TransformComponent(targetTransformComponent.position)
-//    val selectionComponent = new SelectionComponent(target)
-//
-//    val entity = new Entity()
-//    entity.add(actorComponent)
-//    entity.add(transformComponent)
-//    entity.add(selectionComponent)
-//
-//    entity
-//  }
+  import org.kohsuke.randname.RandomNameGenerator
+
+  val randomNames = new RandomNameGenerator(0)
+
+  //  def makeSelection(target: Entity): Entity = {
+  //    val transformComponentMapper = ComponentMapper.getFor(classOf[TransformComponent])
+  //
+  //    val itemTexture: Texture = Service.assetManager.get("spritesheet/selection.png")
+  //    val selectionTextureRegions = TextureRegion.split(itemTexture, itemTexture.getWidth() / 2, itemTexture.getHeight / 1)
+  //    val selectionAnimation = new Animation[TextureRegion](0.5f, selectionTextureRegions(0)(0), selectionTextureRegions(0)(1))
+  //
+  //    val targetTransformComponent = transformComponentMapper.get(target)
+  //
+  //    val actor = new GameActor(selectionAnimation)
+  //    actor.setSize(32, 32)
+  //    actor.setTouchable(Touchable.disabled)
+  //
+  //    val actorComponent = new ActorComponent(actor)
+  //    val transformComponent = new TransformComponent(targetTransformComponent.position)
+  //    val selectionComponent = new SelectionComponent(target)
+  //
+  //    val entity = new Entity()
+  //    entity.add(actorComponent)
+  //    entity.add(transformComponent)
+  //    entity.add(selectionComponent)
+  //
+  //    entity
+  //  }
 
   def makeSelectionActor(): GameActor = {
     val itemTexture: Texture = Service.assetManager.get("spritesheet/selection.png")
@@ -77,6 +82,12 @@ object Factory {
     actor.setTouchable(Touchable.disabled)
 
     actor
+  }
+
+  def makeFaction(): Entity = {
+    val entity = new Entity()
+    entity.add(new FactionComponent("horde"))
+    entity
   }
 
   def makeCharacter(pos: Vector2 = new Vector2()): Entity = {
@@ -103,25 +114,26 @@ object Factory {
     entity.add(transformComponent)
     entity.add(movementComponent)
     entity.add(new SelectableComponent())
-    entity.add(behaviorComponent)
+    //    entity.add(behaviorComponent)
     entity.add(attributeComponent)
     entity.add(new TargetableComponent())
+    entity.add(new NameComponent(randomNames.next()))
 
     actor.entity = entity
 
     val skin: Skin = Service.assetManager.get("uiskin.json")
     val treeViewer = new BehaviorTreeViewer[Blackboard](behaviorComponent.behaviorTree, skin)
     val behaviorDebuggerComponent: BehaviorDebuggerComponent[Blackboard] = new BehaviorDebuggerComponent(treeViewer)
-    entity.add(behaviorDebuggerComponent)
+    //    entity.add(behaviorDebuggerComponent)
 
     val healthActor = new HealthActor(attributeComponent)
     actor.addActor(healthActor)
 
-    val characterComponent = new CharacterComponent()
+    val abilityCollectionComponent = new AbilityCollectionComponent()
     val fireball = makeFireballAbility()
-    characterComponent.equippedAbility = fireball
+    abilityCollectionComponent.abilities(0) = fireball
 
-    entity.add(characterComponent)
+    entity.add(abilityCollectionComponent)
 
     engine.addEntity(fireball)
 
@@ -138,10 +150,13 @@ object Factory {
     actor.setSize(32, 32)
     val actorComponent = new ActorComponent(actor)
     val transformComponent = new TransformComponent(pos)
+    val cityComponent = new CityComponent()
+    cityComponent.income = 10
 
     entity.add(actorComponent)
     entity.add(transformComponent)
     entity.add(new SelectableComponent())
+    entity.add(cityComponent)
 
     actor.entity = entity
 
@@ -192,6 +207,7 @@ object Factory {
     abilityComponent.cooldown = 1f
     abilityComponent.range = 128f
     abilityComponent.damage = 40
+    abilityComponent.name = "fireball"
 
     val animation = new Animation[TextureRegion](0.5f, iconFrames(6)(0))
     val actor = new GameActor(animation)
@@ -232,7 +248,7 @@ object Factory {
     val unitScale: Float = 2f
     val renderer: OrthogonalTiledMapRenderer = new OrthogonalTiledMapRenderer(map, unitScale, stage.getBatch())
     val camera = stage.getCamera.asInstanceOf[OrthographicCamera]
-    renderer.setView(camera)
+
 
     renderer
   }

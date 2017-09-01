@@ -30,33 +30,30 @@
     * healings
     * all kins of balls/bolts
 
-## itemization
-* weapons and armors have effects that affect abilities.
-* players want to get better items to maximize their characters' abilities
-* weapons
-  * melee: sword, axe, hammer
-  * ranged: bow, crossbow
-* shields
-
-## cities
-* population
-* satisfaction
-* safety
-* tax
-
-# characters
-## abilities
-* level up abilities
-
 # game mechanics
-* cities
+* objectives
   * take all cities to win
+* time
+  * day/night
+  * seasons
+* cities
   * cities without any heroes in range may slowly go neutral
   * player may take enemy's city by staying in range. enemies may do the same to turn a city.
   * city generates gold. player buys items from cities.
-  * population?
-* weapons
-  * weapons have durability
+  * city's attributes; but what are they for?
+    * population: gold
+    * satisfaction? gold?
+    * public security?
+    * tax: gold
+  * weapons/armors can be crafted in city 
+* items
+  * weapons/armors have durability
+  * weapons and armors have effects that affect abilities.
+  * players want to get better items to maximize their characters' abilities
+  * weapons
+    * melee: sword, axe, hammer
+    * ranged: bow, crossbow
+  * shields
 * constructions
   * shops, craft armors and weapons
   * church, to revive dead heroes
@@ -65,6 +62,15 @@
   * dummies, train abilities
   * teleport?
   * lab, invent new items
+  * builds consume gold for maintenance
+    * teleport
+* characters
+  * all characters have the same health and mana of 100 unit
+  * characters don't have attributes like strength or intelligence
+  * characters have mastery on each ability/spell
+  * each mastery increases respecting ability/spell's effectiveness
+  * characters drop loot on defeat/kill
+  
 
 # questions
 * do we do constructions?

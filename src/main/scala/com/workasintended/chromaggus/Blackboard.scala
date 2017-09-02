@@ -2,7 +2,7 @@ package com.workasintended.chromaggus
 
 import com.badlogic.ashley.core.{ComponentMapper, Entity, Family}
 import com.badlogic.gdx.math.{Circle, Vector2}
-import com.workasintended.chromaggus.component.{AbilityCollectionComponent, DeadComponent, JobComponent, MovementComponent}
+import com.workasintended.chromaggus.component.{AbilityCollectionComponent, DeadComponent, JobComponent, PositionComponent}
 
 import scala.collection.JavaConverters._
 
@@ -10,7 +10,7 @@ import scala.collection.JavaConverters._
   * Created by mazimeng on 7/27/17.
   */
 class Blackboard {
-  val movementComponentMapper: ComponentMapper[MovementComponent] = ComponentMapper.getFor(classOf[MovementComponent])
+  val movementComponentMapper: ComponentMapper[PositionComponent] = ComponentMapper.getFor(classOf[PositionComponent])
   val enemyFamily: Family = Family.all(classOf[AbilityCollectionComponent]).exclude(classOf[DeadComponent]).get()
 
   var job: JobComponent = _

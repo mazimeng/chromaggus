@@ -45,10 +45,8 @@ class GameScreen extends ScreenAdapter {
   def init(): scala.Unit = {
     initAssets()
 
-    val faction = new Entity()
-    val factionComponent = new FactionComponent("horde")
-    faction.add(factionComponent)
-    engine.addEntity(faction)
+    val factionHorde = new Entity()
+    val factionAlliance = new Entity()
 
     val worldRenderer = Factory.makeWorldRenderer(stage)
     val renderSystem = new RenderSystem(stage, ui, worldRenderer)
@@ -59,11 +57,15 @@ class GameScreen extends ScreenAdapter {
     val behaviorDebugginSystem = new BehaviorDebuggingSystem(ui)
     val abilitySystem = new AbilitySystem()
     val cameraSystem = new CameraSystem(stage)
-    val playerSystem = new PlayerSystem(faction)
-    val abilityUiSystem = new AbilityUiSystem(ui)
+    val playerSystem = new PlayerSystem(factionHorde)
+    val abilityUiSystem = new ManagementUiSystem(ui)
     val factionSystem = new FactionSystem()
+    val characterUiSystem = new CharacterUiSystem(ui)
+    val cooldownSystem = new CooldownSystem()
 
-    factionSystem.factionIncomeChanged.addObserver(abilityUiSystem.goldObserver)
+    factionSystem.factionIncomeChanged.addObserver(abilityUiSystem.incomeChangeHandler)
+    controlSystem.characterSelectionChanged.addObserver(characterUiSystem.characterSelectedHandler)
+    controlSystem.useAbility.addObserver(abilitySystem.useAbilityHandler)
 
     engine.addSystem(playerSystem)
     engine.addSystem(controlSystem)
@@ -77,20 +79,34 @@ class GameScreen extends ScreenAdapter {
     engine.addSystem(renderSystem)
     engine.addSystem(abilityUiSystem)
     engine.addSystem(factionSystem)
-
-    val city = Factory.makeCity(new Vector2(13 * 32, 5 * 32))
-    engine.addEntity(city)
-    factionComponent.cities.add(city)
+    engine.addSystem(characterUiSystem)
+    engine.addSystem(cooldownSystem)
 
     {
-      val character = Factory.makeCharacter(new Vector2(0, 0))
-      factionComponent.characters.add(character)
-      engine.addEntity(character)
+      val component = new FactionComponent("horde")
+      factionHorde.add(component)
+      engine.addEntity(factionHorde)
+
+      {
+        val character = Factory.makeCharacter(factionHorde, new Vector2(0, 0))
+        component.characters.add(character)
+        engine.addEntity(character)
+      }
+      {
+        val character = Factory.makeCharacter(factionHorde, new Vector2(32, 32))
+        component.characters.add(character)
+        engine.addEntity(character)
+      }
     }
+
     {
-      val character = Factory.makeCharacter(new Vector2(32, 32))
-      factionComponent.characters.add(character)
-      engine.addEntity(character)
+      val component = new FactionComponent("alliance")
+      factionAlliance.add(component)
+      engine.addEntity(factionAlliance)
+
+      val city = Factory.makeCity(factionAlliance, new Vector2(13 * 32, 5 * 32))
+      engine.addEntity(city)
+      component.cities.add(city)
     }
 
     //    engine.addEntity(Factory.makeCharacter(new Vector2(128, 128)))

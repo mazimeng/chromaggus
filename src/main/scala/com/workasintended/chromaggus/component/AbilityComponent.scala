@@ -18,9 +18,8 @@ class AbilityComponent extends Component {
   var damage: Int = 0
   var actor: GameActor = _
   var effect: Entity = _
-//  var onUse: Option[() => Unit] = Some(() => {})
   var proficiency: Float = 0 // 0 - 100
-  var proficiencyGrowth: Float = 0.1f //increment per use
+  var proficiencyGrowth: Float = 1f //increment per use
   var isEquipped = false
 }
 
@@ -28,4 +27,8 @@ object AbilityComponent {
   val STATE_READY: Int = 1
   val STATE_COOLINGDOWN: Int = 3
   var TYPE_MISSLE = 1
+
+  val ABILITY_DEFAULT: String = "default"
+  val ABILITY_SIEGE: String = "siege"
+  val ABILITY_FIREBALL: String = "fireball"
 }

@@ -2,7 +2,7 @@ package com.workasintended.chromaggus.job
 
 import com.badlogic.ashley.core.{ComponentMapper, Entity}
 import com.badlogic.gdx.math.{Circle, Vector2}
-import com.workasintended.chromaggus.component.{MovementComponent, TransformComponent}
+import com.workasintended.chromaggus.component.{PositionComponent, TransformComponent}
 
 /**
   * Created by mazimeng on 7/26/17.
@@ -10,7 +10,7 @@ import com.workasintended.chromaggus.component.{MovementComponent, TransformComp
 class MoveIntoRange(val entity: Entity, val range: Circle) extends Job {
   var speed = 32f
   private val transformComponentMapper = ComponentMapper.getFor(classOf[TransformComponent])
-  private val movementComponentMapper = ComponentMapper.getFor(classOf[MovementComponent])
+  private val movementComponentMapper = ComponentMapper.getFor(classOf[PositionComponent])
 
   override def update(delta: Float): scala.Unit = {
     super.update(delta)

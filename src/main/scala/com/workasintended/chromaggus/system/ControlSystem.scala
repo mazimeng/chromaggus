@@ -1,13 +1,15 @@
 package com.workasintended.chromaggus.system
 
 import com.badlogic.ashley.core._
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener
 import com.badlogic.gdx.scenes.scene2d.{InputEvent, Stage}
-import com.badlogic.gdx.{Gdx, Input, InputMultiplexer}
+import com.workasintended.chromaggus.GameActor
 import com.workasintended.chromaggus.component._
-import com.workasintended.chromaggus.job.{MoveTo, Use}
-import com.workasintended.chromaggus.{Factory, GameActor}
+import com.workasintended.chromaggus.event.Events.UseAbility
+import com.workasintended.chromaggus.event.{Event, Events}
+import com.workasintended.chromaggus.job.MoveTo
 
 import scala.collection.JavaConverters._
 
@@ -23,6 +25,8 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
   val selectedFamily: Family = Family.all(classOf[SelectedComponent]).get()
   val controllableFamily: Family = Family.all(classOf[SelectedComponent]).exclude(classOf[DeadComponent]).get()
   val selectableFamily: Family = Family.all(classOf[ActorComponent], classOf[SelectableComponent]).get()
+  val characterSelectionChanged = new Event[Events.CharacterSelectionChanged]
+  val useAbility = new Event[Events.UseAbility]
 
   stage.addListener(new InputHandler())
 
@@ -34,10 +38,20 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
   }
 
   def select(entity: Entity): Unit = {
-    if (!selectableFamily.matches(entity)) return
+    if (!selectableFamily.matches(entity)) {
+      characterSelectionChanged.fire(Events.CharacterSelectionChanged(None))
+      return
+    }
+
 
     clearSelection(entity)
     if (!selectedComponentMapper.has(entity)) entity.add(new SelectedComponent())
+
+    val factionSystem = getEngine.getSystem(classOf[FactionSystem])
+    val factionName = factionSystem.getFactionName(entity)
+    if(factionName.isDefined) println(s"faction: ${factionName.get}")
+
+    characterSelectionChanged.fire(Events.CharacterSelectionChanged(Some(entity)))
   }
 
   class InputHandler extends ActorGestureListener {
@@ -53,6 +67,7 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
 
         if (actor == null) {
           clearSelection()
+          characterSelectionChanged.fire(Events.CharacterSelectionChanged(None))
           return
         }
 
@@ -73,6 +88,7 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
             moveTo.onDone = () => elem.remove(classOf[ManualComponent])
             val jobComponent = new JobComponent(moveTo)
 
+            elem.remove(classOf[UseComponent])
             elem.add(jobComponent)
             elem.add(new ManualComponent())
           }
@@ -80,23 +96,10 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
         else {
           if (!actor.isInstanceOf[GameActor]) return
           val target = actor.asInstanceOf[GameActor].entity
-          if (target == null || !targetableComponent.has(target)) return
-
-          val abilitySystem = getEngine.getSystem(classOf[AbilitySystem])
+//          if (target == null || !targetableComponent.has(target)) return
 
           for (elem <- getEngine.getEntitiesFor(controllableFamily).asScala) {
-
-            val as = getEngine().getSystem(classOf[AbilitySystem])
-            val equippedAbilities = as.getEquippedAbilities(elem)
-
-            if (equippedAbilities.length > 0) {
-              val follow = new Use(elem, target, equippedAbilities.head, abilitySystem)
-              val jobComponent = new JobComponent(follow)
-
-              elem.add(jobComponent)
-
-            }
-
+            useAbility.fire(UseAbility(elem, target, AbilityComponent.ABILITY_DEFAULT))
           }
         }
       }

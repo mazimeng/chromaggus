@@ -1,15 +1,14 @@
 package com.workasintended.chromaggus.system
 
-import java.util.Observable
-
 import com.badlogic.ashley.core._
 import com.badlogic.ashley.systems.IteratingSystem
-import com.workasintended.chromaggus.component.{CityComponent, FactionComponent}
+import com.workasintended.chromaggus.component.{BelongToFactionComponent, CityComponent, FactionComponent}
 import com.workasintended.chromaggus.event.Events.FactionIncomeChanged
 import com.workasintended.chromaggus.event.{Event, Events}
 
 class FactionSystem extends IteratingSystem(Family.all(classOf[FactionComponent]).get()) {
   val factionComponent: ComponentMapper[FactionComponent] = ComponentMapper.getFor(classOf[FactionComponent])
+  val belongToFactionComponent: ComponentMapper[BelongToFactionComponent] = ComponentMapper.getFor(classOf[BelongToFactionComponent])
   val cityComponent: ComponentMapper[CityComponent] = ComponentMapper.getFor(classOf[CityComponent])
   val factionIncomeChanged = new Event[Events.FactionIncomeChanged]
 
@@ -28,6 +27,25 @@ class FactionSystem extends IteratingSystem(Family.all(classOf[FactionComponent]
 
     factionIncomeChanged.fire(FactionIncomeChanged(faction))
   })
+
+  def getFaction(entity: Entity): Option[Entity] = {
+    if(belongToFactionComponent.has(entity)) {
+      Some(belongToFactionComponent.get(entity).faction)
+    }
+    else {
+      None
+    }
+  }
+
+  def getFactionName(entity: Entity): Option[String] = {
+    val faction = getFaction(entity)
+    if(faction.isDefined) {
+      Some(factionComponent.get(faction.get).faction)
+    }
+    else {
+      None
+    }
+  }
 
   override def processEntity(entity: Entity, deltaTime: Float): Unit = {
     tax.update(entity, deltaTime)

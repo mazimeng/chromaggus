@@ -46,8 +46,8 @@ class RenderSystem(val stage: Stage, val ui: Stage, val worldRenderer: Orthogona
     ui.act(delta)
 
     stage.getViewport().apply()
-//    worldRenderer.setView(stage.getCamera().asInstanceOf[OrthographicCamera])
-//    worldRenderer.render()
+    worldRenderer.setView(stage.getCamera().asInstanceOf[OrthographicCamera])
+    worldRenderer.render()
     stage.draw()
 
     ui.getViewport().apply()

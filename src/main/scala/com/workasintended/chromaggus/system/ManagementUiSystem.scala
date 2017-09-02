@@ -1,7 +1,5 @@
 package com.workasintended.chromaggus.system
 
-import java.util.{Observable, Observer}
-
 import com.badlogic.ashley.core._
 import com.badlogic.gdx.scenes.scene2d.{Actor, InputEvent, Stage}
 import com.badlogic.gdx.scenes.scene2d.ui._
@@ -15,18 +13,18 @@ import com.workasintended.chromaggus.event.Events.FactionIncomeChanged
 /**
   * Created by mazimeng on 7/30/17.
   */
-class AbilityUiSystem(val ui: Stage) extends EntitySystem {
+class ManagementUiSystem(val ui: Stage) extends EntitySystem {
   val nameComponent: ComponentMapper[NameComponent] = ComponentMapper.getFor(classOf[NameComponent])
   val abilityCollectionComponent: ComponentMapper[AbilityCollectionComponent] = ComponentMapper.getFor(classOf[AbilityCollectionComponent])
   val abilityComponent: ComponentMapper[AbilityComponent] = ComponentMapper.getFor(classOf[AbilityComponent])
   val skin: Skin = Service.assetManager.get("uiskin.json")
   val factionComponent: ComponentMapper[FactionComponent] = ComponentMapper.getFor(classOf[FactionComponent])
 
-  val goldObserver = new EventHandler[FactionIncomeChanged] {
+  val incomeChangeHandler = new EventHandler[FactionIncomeChanged] {
     override def handle(arg: FactionIncomeChanged): Unit = {
       val faction = factionComponent.get(arg.faction)
       val ps: PlayerSystem = getEngine().getSystem(classOf[PlayerSystem])
-      if(ps.faction == arg.faction) {
+      if (ps.faction == arg.faction) {
         goldIndicator.setText(s"gold: ${faction.gold}")
       }
     }
@@ -66,11 +64,10 @@ class AbilityUiSystem(val ui: Stage) extends EntitySystem {
     val character = characterList.getSelected
     val acc = abilityCollectionComponent.get(character)
 
-    val names: Array[String] = acc.abilities.filter(_ != null).map(abilityComponent.get(_).name)
-    val nameArray = new com.badlogic.gdx.utils.Array[String](names.length)
+    val nameArray = new com.badlogic.gdx.utils.Array[String](acc.abilities.size)
     nameArray.add("none")
-    for (i <- names.indices) {
-      nameArray.add(names(i))
+    for (elem <- acc.abilities) {
+      nameArray.add(abilityComponent.get(elem).name)
     }
 
     abilityList.clearItems()
@@ -148,13 +145,11 @@ class AbilityUiSystem(val ui: Stage) extends EntitySystem {
           val acc = abilityCollectionComponent.get(character)
 
           for (elem <- acc.abilities) {
-            if (elem != null) {
-              if (abilityList.getSelected == "none") {
-                abilityComponent.get(elem).isEquipped = false
-              }
-              else if (abilityComponent.get(elem).name == abilityList.getSelected) {
-                abilityComponent.get(elem).isEquipped = true
-              }
+            if (abilityList.getSelected == "none") {
+              abilityComponent.get(elem).isEquipped = false
+            }
+            else if (abilityComponent.get(elem).name == abilityList.getSelected) {
+              abilityComponent.get(elem).isEquipped = true
             }
           }
         }

@@ -1,3 +1,14 @@
+# phases
+* sketching <- here
+* engine
+* polishing
+
+# todo
+* change ability system for siege
+* gui
+* art
+* sound
+
 # dragon quest + warcraft + civilization
 
 # design

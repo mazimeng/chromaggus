@@ -8,6 +8,9 @@ abstract class Job {
   var started = false
   var onDone: () => Unit = () => {}
   var onStart: () => Unit = () => {}
+  var onTick: Option[() => Unit] = None
+  var tickInterval: Float = Float.MaxValue
+  var elapsed: Float = 0f
 
   def complete(): scala.Unit = {
     if (done) return
@@ -23,6 +26,11 @@ abstract class Job {
   }
 
   def update(delta: Float): scala.Unit = {
+    elapsed += delta
     start()
+    if(onTick.isDefined && elapsed >= tickInterval) {
+      onTick.get.apply()
+      elapsed = 0f
+    }
   }
 }

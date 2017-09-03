@@ -7,9 +7,8 @@ import com.workasintended.chromaggus.component.{PositionComponent, TransformComp
 /**
   * Created by mazimeng on 7/26/17.
   */
-class Follow(val entity: Entity, val target: Entity) extends Job {
+class Follow(val entity: Entity, val target: Entity, val range2: Float = 32f*32f) extends Job {
   var speed = 32f
-  var range2: Float = 32*32f
   private val transformComponentMapper = ComponentMapper.getFor(classOf[TransformComponent])
   private val movementComponentMapper = ComponentMapper.getFor(classOf[PositionComponent])
 

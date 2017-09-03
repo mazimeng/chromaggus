@@ -2,7 +2,7 @@ package com.workasintended.chromaggus
 
 import com.badlogic.ashley.core.{ComponentMapper, Engine, Entity, Family}
 import com.badlogic.gdx.math.{Circle, Vector2}
-import com.workasintended.chromaggus.component.{AbilityCollectionComponent, DeadComponent, JobComponent, PositionComponent}
+import com.workasintended.chromaggus.component._
 
 import scala.collection.JavaConverters._
 
@@ -10,10 +10,11 @@ import scala.collection.JavaConverters._
   * Created by mazimeng on 7/27/17.
   */
 class Blackboard(val engine: Engine) {
-  val movementComponentMapper: ComponentMapper[PositionComponent] = ComponentMapper.getFor(classOf[PositionComponent])
+  val positionComponent: ComponentMapper[PositionComponent] = ComponentMapper.getFor(classOf[PositionComponent])
+  val orderComponent: ComponentMapper[OrderComponent] = ComponentMapper.getFor(classOf[OrderComponent])
+  val abilityComponent: ComponentMapper[AbilityComponent] = ComponentMapper.getFor(classOf[AbilityComponent])
   val enemyFamily: Family = Family.all(classOf[AbilityCollectionComponent]).exclude(classOf[DeadComponent]).get()
 
-  var job: JobComponent = _
   var entity: Entity = _
   var threatRange2: Float = 128f*128f
 
@@ -22,13 +23,13 @@ class Blackboard(val engine: Engine) {
 
   var enemies: Seq[Entity] = _
 
-  def entityPosition(): Vector2 = movementComponentMapper.get(entity).position
+  def entityPosition(): Vector2 = positionComponent.get(entity).position
 
   def findEnemies(): Seq[Entity] = {
-    val position = movementComponentMapper.get(entity).position
+    val position = positionComponent.get(entity).position
 
     val enemies: Seq[Entity] = Factory.engine.getEntitiesFor(enemyFamily).asScala.flatMap((x: Entity) => {
-      val enemyPosition: Vector2 = movementComponentMapper.get(x).position
+      val enemyPosition: Vector2 = positionComponent.get(x).position
       val dst2 = enemyPosition.dst2(position)
 
       if (x == entity || dst2 > threatRange2) {
@@ -43,12 +44,12 @@ class Blackboard(val engine: Engine) {
   }
 
   def isStationed: Boolean = {
-    val position = movementComponentMapper.get(entity).position
+    val position = positionComponent.get(entity).position
     station.contains(position)
   }
 
   def isSafe: Boolean = {
-    val position = movementComponentMapper.get(entity).position
+    val position = positionComponent.get(entity).position
     safe.contains(position)
   }
 }

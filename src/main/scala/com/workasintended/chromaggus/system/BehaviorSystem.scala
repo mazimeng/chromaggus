@@ -2,10 +2,12 @@ package com.workasintended.chromaggus.system
 
 import com.badlogic.ashley.core._
 import com.badlogic.ashley.systems.IteratingSystem
+import com.badlogic.gdx.ai.GdxAI
 import com.badlogic.gdx.ai.btree.BehaviorTree
 import com.badlogic.gdx.ai.btree.branch.Parallel.Policy
 import com.badlogic.gdx.ai.btree.branch.{Parallel, Selector, Sequence}
 import com.badlogic.gdx.ai.btree.decorator.Invert
+import com.badlogic.gdx.ai.btree.leaf.Wait
 import com.badlogic.gdx.ai.btree.utils.{BehaviorTreeLibrary, BehaviorTreeLibraryManager, BehaviorTreeParser}
 import com.workasintended.chromaggus.Blackboard
 import com.workasintended.chromaggus.behavior._
@@ -23,7 +25,7 @@ class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).exc
     val library: BehaviorTreeLibrary = new BehaviorTreeLibrary(BehaviorTreeParser.DEBUG_HIGH)
     libraryManager.setLibrary(library)
 
-    val tree = makeGuard()
+    val tree = makeBehavior()
     library.registerArchetypeTree("some", tree)
 
     engine.addEntityListener(family, new EntityListener() {
@@ -37,12 +39,17 @@ class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).exc
     })
   }
 
+  override def update(deltaTime: Float) = {
+    GdxAI.getTimepiece.update(deltaTime)
+    super.update(deltaTime)
+  }
+
   override def processEntity(entity: Entity, v: Float): scala.Unit = {
     val bc = behaviorComponent.get(entity)
 
-    if(!bc.isEnabled) return
+    if (!bc.isEnabled) return
 
-    if(bc.elapsedSinceLastStep >= bc.interval) {
+    if (bc.elapsedSinceLastStep >= bc.interval) {
       bc.elapsedSinceLastStep = 0
       bc.behaviorTree.step()
     }
@@ -51,11 +58,35 @@ class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).exc
     }
   }
 
-  def tick(entity: Entity): Unit = {
+  def think(entity: Entity): Unit = {
     val bc = behaviorComponent.get(entity)
 
-    if(!bc.isEnabled) return
+    if (!bc.isEnabled) return
     bc.behaviorTree.step()
+  }
+
+  def reset(entity: Entity): Unit = {
+    val bc = behaviorComponent.get(entity)
+
+    if (!bc.isEnabled) return
+    bc.behaviorTree.reset()
+  }
+
+  def makeBehavior(): BehaviorTree[Blackboard] = {
+    val tree = new BehaviorTree[Blackboard]()
+
+    val move = new Move()
+    val follow = new Follow()
+    val inRange = new InRange()
+
+    val getClose = new Parallel[Blackboard](Parallel.Policy.Selector, inRange, move, follow)
+    val useAbility = new UseAbility()
+    val prepare = new Parallel[Blackboard](Parallel.Policy.Sequence, inRange, new Prepare())
+
+    val root = new Sequence[Blackboard](getClose, prepare, useAbility)
+    root.setGuard(new ReceivedOrder())
+    tree.addChild(root)
+    tree
   }
 
   private def makeGuard(): BehaviorTree[Blackboard] = {

@@ -135,8 +135,10 @@ object Factory {
     val abilityCollectionComponent = new AbilityCollectionComponent()
     val fireball = makeFireballAbility()
     val siege = makeSiegeAbility()
+    val move = makeMoveAbility()
     abilityCollectionComponent.abilities.add(fireball)
     abilityCollectionComponent.abilities.add(siege)
+    abilityCollectionComponent.abilities.add(move)
 
     entity.add(abilityCollectionComponent)
 
@@ -211,7 +213,7 @@ object Factory {
     val entity = new Entity()
     val abilityComponent = new AbilityComponent()
     abilityComponent.effectType = AbilityComponent.EFFECT_PROJECTILE
-    abilityComponent.preparation = 2f
+    abilityComponent.preparation = 10f
     abilityComponent.cooldown = 1f
     abilityComponent.range = 128f
     abilityComponent.damage = 5
@@ -232,12 +234,27 @@ object Factory {
   def makeSiegeAbility(): Entity = {
     val entity = new Entity()
     val abilityComponent = new AbilityComponent()
-    abilityComponent.effectType = AbilityComponent.EFFECT_PROJECTILE
+    abilityComponent.effectType = AbilityComponent.EFFECT_INSTANT
     abilityComponent.preparation = 5f
     abilityComponent.cooldown = 1f
     abilityComponent.range = 32f
     abilityComponent.damage = 0
     abilityComponent.name = AbilityComponent.ABILITY_SIEGE
+    abilityComponent.isEquipped = true
+
+    entity.add(abilityComponent)
+    entity
+  }
+
+  def makeMoveAbility(): Entity = {
+    val entity = new Entity()
+    val abilityComponent = new AbilityComponent()
+    abilityComponent.effectType = AbilityComponent.EFFECT_INSTANT
+    abilityComponent.preparation = 0f
+    abilityComponent.cooldown = 0f
+    abilityComponent.range = 32f
+    abilityComponent.damage = 0
+    abilityComponent.name = AbilityComponent.ABILITY_MOVE
     abilityComponent.isEquipped = true
 
     entity.add(abilityComponent)
@@ -262,7 +279,7 @@ object Factory {
     attack.addChild(new FindThreat())
     attack.addChild(new Attack())
 
-    attack.setGuard(new Sequence[Blackboard](new Dummy("attack guard evaluated"), new InSafeZone()))
+//    attack.setGuard(new Sequence[Blackboard](new Dummy("attack guard evaluated"), new InSafeZone()))
 
     tree.addChild(new Sequence(returnToStation, attack))
 

@@ -7,7 +7,7 @@ import com.workasintended.chromaggus.component.{PositionComponent, TransformComp
 /**
   * Created by mazimeng on 7/26/17.
   */
-class MoveTo(val entity: Entity, val position: Vector2) extends Job {
+class MoveTo(val entity: Entity, val position: Vector2, val range2: Float = 32f) extends Job {
   var speed = 32f
   private val transformComponentMapper = ComponentMapper.getFor(classOf[TransformComponent])
   private val movementComponentMapper = ComponentMapper.getFor(classOf[PositionComponent])
@@ -15,7 +15,6 @@ class MoveTo(val entity: Entity, val position: Vector2) extends Job {
   override def update(delta: Float): scala.Unit = {
     super.update(delta)
 
-    val range2 = 64f
     val mc = movementComponentMapper.get(entity)
 
     if (mc == null || mc.position.dst2(position) <= range2) {

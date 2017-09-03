@@ -34,4 +34,5 @@ object AbilityComponent {
   val ABILITY_DEFAULT: String = "default"
   val ABILITY_SIEGE: String = "siege"
   val ABILITY_FIREBALL: String = "fireball"
+  val ABILITY_MOVE: String = "move"
 }

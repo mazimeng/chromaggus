@@ -8,7 +8,7 @@ import com.workasintended.chromaggus.Blackboard
   * Created by mazimeng on 7/27/17.
   */
 class BehaviorComponent(val behaviorTree: BehaviorTree[Blackboard]) extends Component {
-  var interval = 0.5f
+  var interval = 0.2f
   var elapsedSinceLastStep: Float = interval
   var isEnabled = false
 }

@@ -25,7 +25,5 @@ class ReturnToStation extends LeafTask[Blackboard]{
     }
   }
 
-  override def copyTo(task: Task[Blackboard]): Task[Blackboard] = {
-    task
-  }
+  override def copyTo(task: Task[Blackboard]): Task[Blackboard] = task
 }

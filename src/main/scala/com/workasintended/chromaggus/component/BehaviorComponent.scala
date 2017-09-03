@@ -10,4 +10,5 @@ import com.workasintended.chromaggus.Blackboard
 class BehaviorComponent(val behaviorTree: BehaviorTree[Blackboard]) extends Component {
   var interval = 0.5f
   var elapsedSinceLastStep: Float = interval
+  var isEnabled = false
 }

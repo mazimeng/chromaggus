@@ -14,19 +14,22 @@ class AbilityComponent extends Component {
   def range2: Float = range*range
   var state: Int = AbilityComponent.STATE_READY
   var progress: Float = 0f
-  var abilityType: Int = AbilityComponent.TYPE_MISSLE
+  var effectType: Int = AbilityComponent.EFFECT_INSTANT
   var damage: Int = 0
   var actor: GameActor = _
-  var effect: Entity = _
   var proficiency: Float = 0 // 0 - 100
   var proficiencyGrowth: Float = 1f //increment per use
   var isEquipped = false
+  var repeat: Boolean = false
+  var isOffensive = false
 }
 
 object AbilityComponent {
   val STATE_READY: Int = 1
   val STATE_COOLINGDOWN: Int = 3
-  var TYPE_MISSLE = 1
+
+  val EFFECT_INSTANT = 1
+  val EFFECT_PROJECTILE = 2
 
   val ABILITY_DEFAULT: String = "default"
   val ABILITY_SIEGE: String = "siege"

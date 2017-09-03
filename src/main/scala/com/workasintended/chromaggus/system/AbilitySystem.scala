@@ -21,31 +21,22 @@ class AbilitySystem() extends EntitySystem {
   val deadComponent: ComponentMapper[DeadComponent] = ComponentMapper.getFor(classOf[DeadComponent])
   val useComponent: ComponentMapper[UseComponent] = ComponentMapper.getFor(classOf[UseComponent])
   val transformComponent: ComponentMapper[TransformComponent] = ComponentMapper.getFor(classOf[TransformComponent])
+  val belongToFactionComponent: ComponentMapper[BelongToFactionComponent] = ComponentMapper.getFor(classOf[BelongToFactionComponent])
+  val factionComponent: ComponentMapper[FactionComponent] = ComponentMapper.getFor(classOf[FactionComponent])
+  val cityComponent: ComponentMapper[CityComponent] = ComponentMapper.getFor(classOf[CityComponent])
+
+  val useFamily: Family = Family.all(classOf[UseComponent]).get()
 
   val abilityUsed = new Event[Events.AbilityUsed]
-  val useFamily: Family = Family.all(classOf[UseComponent]).get()
 
   val useAbilityHandler = new EventHandler[UseAbility] {
     override def handle(arg: UseAbility): Unit = {
-      var ability: Option[Entity] = None
-      if(arg.abilityName == AbilityComponent.ABILITY_DEFAULT) {
-        ability = getFirstEquippedAbility(arg.user)
-      }
-      else {
-        ability = getAbility(arg.abilityName, arg.user)
-      }
-
-      if(ability.isDefined) {
-        val useComponent = new UseComponent(arg.user, arg.target, ability.get)
-        arg.user.remove(classOf[UseComponent])
-        arg.user.remove(classOf[JobComponent])
-        arg.user.add(useComponent)
-      }
+      prepareAbility(arg.abilityName, arg.user, arg.target)
     }
   }
 
   override def update(deltaTime: Float): Unit = {
-    for(user <- getEngine.getEntitiesFor(useFamily).asScala) {
+    for (user <- getEngine.getEntitiesFor(useFamily).asScala) {
       updateUse(user, deltaTime)
     }
   }
@@ -79,11 +70,15 @@ class AbilitySystem() extends EntitySystem {
       uc.useState = UseComponent.STATE_IDLE
       if (isInRange(ability, user, pos) && isReady(ability)) {
         useAbility(ability, user, target)
+
+        if (!ac.repeat) {
+          user.remove(classOf[UseComponent])
+        }
       }
     }
     else if (uc.useState == UseComponent.STATE_IDLE) {
       if (isInRange(ability, user, pos)) {
-        if(isReady(ability)) {
+        if (isReady(ability)) {
           uc.useState = UseComponent.STATE_PREPARING
           println("preparing")
         }
@@ -96,7 +91,7 @@ class AbilitySystem() extends EntitySystem {
 
   def updateFollow(user: Entity, target: Entity, delta: Float): scala.Unit = {
     val speed = 32f
-    val range2: Float = 32*32f
+    val range2: Float = 32 * 32f
 
     val mc = movementComponent.get(user)
     val position = movementComponent.get(target).position
@@ -114,13 +109,49 @@ class AbilitySystem() extends EntitySystem {
     }
   }
 
+  def prepareAbility(abilityName: String, user: Entity, target: Entity): Unit = {
+    var abilityOption: Option[Entity] = None
+    if (abilityName == AbilityComponent.ABILITY_DEFAULT) {
+      abilityOption = getFirstEquippedAbility(user)
+    }
+    else {
+      abilityOption = getAbility(abilityName, user)
+    }
+
+    if (abilityOption.isEmpty) return
+    prepareAbility(abilityOption.get, user, target)
+//    if (target == user) return
+//
+//    val ability = abilityOption.get
+//    val currentUse = useComponent.get(user)
+//
+//    if (currentUse != null && currentUse.ability == ability && currentUse.target == target) return
+//
+//    val uc = new UseComponent(user, target, ability)
+//    user.remove(classOf[UseComponent])
+//    user.remove(classOf[JobComponent])
+//    user.add(uc)
+  }
+
+  def prepareAbility(ability: Entity, user: Entity, target: Entity): Unit = {
+    if (target == user) return
+    val currentUse = useComponent.get(user)
+
+    if (currentUse != null && currentUse.ability == ability && currentUse.target == target) return
+
+    val uc = new UseComponent(user, target, ability)
+    user.remove(classOf[UseComponent])
+    user.remove(classOf[JobComponent])
+    user.add(uc)
+  }
+
   def useAbility(ability: Entity, user: Entity, target: Entity): Unit = {
     val abilityName = abilityComponent.get(ability).name
-    if(abilityName == AbilityComponent.ABILITY_FIREBALL) {
+    if (abilityName == AbilityComponent.ABILITY_FIREBALL) {
       useFireball(user, target)
     }
-    else if(abilityName == AbilityComponent.ABILITY_SIEGE) {
-
+    else if (abilityName == AbilityComponent.ABILITY_SIEGE) {
+      useSiege(user, target)
     }
   }
 
@@ -131,48 +162,20 @@ class AbilitySystem() extends EntitySystem {
     val attr = attributeComponent.get(target)
 
     val effectMc = movementComponent.get(effect)
-    if(effectArea.contains(effectMc.position)) {
-      attr.health -= abc.damage  + abc.proficiency.toInt
+    if (effectArea.contains(effectMc.position)) {
+      attr.health -= abc.damage + abc.proficiency.toInt
 
       abc.proficiency += abc.proficiencyGrowth
       abilityUsed.fire(Events.AbilityUsed(ability))
     }
   }
 
-  def makeProjectile(ability: Entity, user: Entity, target: Entity): Entity = {
-    val usable = new Entity()
-    val dest = movementComponent.get(target).position
-    val moveTo = new MoveTo(usable, dest)
-    val ab = abilityComponent.get(ability)
-    moveTo.speed = 256f
-    moveTo.onDone = () => {
-      effect(ability, user, target, usable)
-      engine.removeEntity(usable)
-    }
-
-    val ac = new ActorComponent(ab.actor)
-    val tc = new TransformComponent(movementComponent.get(user).position)
-    val mc = new PositionComponent(movementComponent.get(user).position)
-    val jc = new JobComponent(moveTo)
-
-    usable.add(ac)
-    usable.add(tc)
-    usable.add(mc)
-    usable.add(jc)
-
-    usable
-  }
-
-  def makeUsable(ability: Entity, user: Entity, target: Entity): Entity = {
-    makeProjectile(ability, user, target)
-  }
-
   def useDefault(user: Entity, target: Entity): Unit = {
     val ability = getFirstEquippedAbility(user)
-    if(ability.isEmpty) return
+    if (ability.isEmpty) return
 
     val ab = abilityComponent.get(ability.get)
-    if(ab.name == AbilityComponent.ABILITY_FIREBALL) {
+    if (ab.name == AbilityComponent.ABILITY_FIREBALL) {
       useFireball(user, target)
     }
   }
@@ -180,7 +183,7 @@ class AbilitySystem() extends EntitySystem {
   def useFireball(user: Entity, target: Entity): Unit = {
     val ability = getAbility(AbilityComponent.ABILITY_FIREBALL, user)
 
-    if(ability.isEmpty) return
+    if (ability.isEmpty) return
 
     val usable = new Entity()
     val dest = movementComponent.get(target).position
@@ -202,8 +205,8 @@ class AbilitySystem() extends EntitySystem {
       val effectArea = new Circle(dest, 32f)
       val attr = attributeComponent.get(target)
 
-      if(effectArea.contains(mc.position)) {
-        attr.health -= ab.damage  + ab.proficiency.toInt
+      if (effectArea.contains(mc.position)) {
+        attr.health -= ab.damage + ab.proficiency.toInt
 
         ab.proficiency += ab.proficiencyGrowth
         abilityUsed.fire(Events.AbilityUsed(ability.get))
@@ -216,18 +219,38 @@ class AbilitySystem() extends EntitySystem {
     getEngine.addEntity(usable)
   }
 
-  def getAbility(abilityName: String, user: Entity): Option[Entity] = {
-    if(!abilityCollectionComponent.has(user)) return None
+  def useSiege(user: Entity, target: Entity): Unit = {
+    val ability = getAbility(AbilityComponent.ABILITY_SIEGE, user)
+    val targetFaction = belongToFactionComponent.get(target)
+    val userFaction = belongToFactionComponent.get(user)
+    val city = cityComponent.get(target)
 
-    val acc = abilityCollectionComponent.get(user)
-    acc.abilities.find(abilityComponent.get(_).name == abilityName)
+    if (ability.isEmpty) return
+    if (city == null) return
+    if (targetFaction == null || userFaction == null) return
+    if (targetFaction == userFaction) return
+
+    targetFaction.faction = userFaction.faction
+    factionComponent.get(userFaction.faction).cities.add(target)
+  }
+
+  def getAbility(abilityName: String, user: Entity): Option[Entity] = {
+    findAbility(user, _.name == abilityName)
   }
 
   def getFirstEquippedAbility(user: Entity): Option[Entity] = {
-    if(!abilityCollectionComponent.has(user)) return None
+    findAbility(user, _.isEquipped)
+  }
+
+  def getFirstOffensive(user: Entity): Option[Entity] = {
+    findAbility(user, _.isOffensive)
+  }
+
+  def findAbility(user: Entity, condition: (AbilityComponent) => Boolean): Option[Entity] = {
+    if (!abilityCollectionComponent.has(user)) return None
 
     val acc = abilityCollectionComponent.get(user)
-    acc.abilities.find(abilityComponent.get(_).isEquipped)
+    acc.abilities.find(a => condition.apply(abilityComponent.get(a)))
   }
 
   def isCoolingDown(ability: Entity): Boolean = {
@@ -255,11 +278,11 @@ class AbilitySystem() extends EntitySystem {
     dst2 <= ac.range2
   }
 
-//  def getEquippedAbilities(user: Entity): Array[Entity] = {
-//    val abilityCollection = abilityCollectionComponent.get(user)
-//
-//    val equippedAbilities: mutable.Set[Entity] = abilityCollection.abilities.filter(abilityComponent.get(_).isEquipped)
-//
-//    equippedAbilities
-//  }
+  //  def getEquippedAbilities(user: Entity): Array[Entity] = {
+  //    val abilityCollection = abilityCollectionComponent.get(user)
+  //
+  //    val equippedAbilities: mutable.Set[Entity] = abilityCollection.abilities.filter(abilityComponent.get(_).isEquipped)
+  //
+  //    equippedAbilities
+  //  }
 }

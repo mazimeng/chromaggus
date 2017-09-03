@@ -4,10 +4,18 @@
 * polishing
 
 # todo
-* change ability system for siege
-* gui
-* art
-* sound
+* cooldown interface
+* preparation bar
+* faction indicator
+* character sprites
+* mouse cursor? touch screen doesn't have it
+* constructions
+* character attributes
+* procedural world
+* icons
+* a.i.
+* use space partitioning data structure. quadtree?
+
 
 # dragon quest + warcraft + civilization
 

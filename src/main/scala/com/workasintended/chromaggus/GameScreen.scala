@@ -66,6 +66,7 @@ class GameScreen extends ScreenAdapter {
     factionSystem.factionIncomeChanged.addObserver(abilityUiSystem.incomeChangeHandler)
     controlSystem.characterSelectionChanged.addObserver(characterUiSystem.characterSelectedHandler)
     controlSystem.useAbility.addObserver(abilitySystem.useAbilityHandler)
+    characterUiSystem.targetRequired.addObserver(controlSystem.targetRequiredHandler)
 
     engine.addSystem(playerSystem)
     engine.addSystem(controlSystem)
@@ -88,12 +89,12 @@ class GameScreen extends ScreenAdapter {
       engine.addEntity(factionHorde)
 
       {
-        val character = Factory.makeCharacter(factionHorde, new Vector2(0, 0))
+        val character = Factory.makeCharacter(engine, factionHorde, new Vector2(0, 0))
         component.characters.add(character)
         engine.addEntity(character)
       }
       {
-        val character = Factory.makeCharacter(factionHorde, new Vector2(32, 32))
+        val character = Factory.makeCharacter(engine, factionHorde, new Vector2(128, 64))
         component.characters.add(character)
         engine.addEntity(character)
       }

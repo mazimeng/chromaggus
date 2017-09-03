@@ -90,7 +90,7 @@ object Factory {
     entity
   }
 
-  def makeCharacter(faction: Entity, pos: Vector2 = new Vector2()): Entity = {
+  def makeCharacter(engine: Engine, faction: Entity, pos: Vector2 = new Vector2()): Entity = {
     val entity = new Entity()
 
     val animation = new Animation[TextureRegion](0.5f, char01Frames(0)(0), char01Frames(0)(2))
@@ -104,19 +104,20 @@ object Factory {
     val belongToFactionComponent = new BelongToFactionComponent(faction)
     attributeComponent.health = 100
 
-    val blackboard = new Blackboard()
+    val blackboard = new Blackboard(engine)
     blackboard.entity = entity
     blackboard.station.set(pos, 64f)
     blackboard.safe.set(pos, 128f)
 
     val behaviorComponent = new BehaviorComponent(makeBehavior("some", entity, blackboard))
+    behaviorComponent.isEnabled = true
 
     entity.add(belongToFactionComponent)
     entity.add(actorComponent)
     entity.add(transformComponent)
     entity.add(movementComponent)
     entity.add(new SelectableComponent())
-    //    entity.add(behaviorComponent)
+    entity.add(behaviorComponent)
     entity.add(attributeComponent)
     entity.add(new TargetableComponent())
     entity.add(new NameComponent(randomNames.next()))
@@ -126,7 +127,7 @@ object Factory {
     val skin: Skin = Service.assetManager.get("uiskin.json")
     val treeViewer = new BehaviorTreeViewer[Blackboard](behaviorComponent.behaviorTree, skin)
     val behaviorDebuggerComponent: BehaviorDebuggerComponent[Blackboard] = new BehaviorDebuggerComponent(treeViewer)
-    //    entity.add(behaviorDebuggerComponent)
+    entity.add(behaviorDebuggerComponent)
 
     val healthActor = new HealthActor(attributeComponent)
     actor.addActor(healthActor)
@@ -140,7 +141,6 @@ object Factory {
     entity.add(abilityCollectionComponent)
 
     engine.addEntity(fireball)
-
 
     entity
   }
@@ -210,13 +210,15 @@ object Factory {
   def makeFireballAbility(): Entity = {
     val entity = new Entity()
     val abilityComponent = new AbilityComponent()
-    abilityComponent.abilityType = AbilityComponent.TYPE_MISSLE
+    abilityComponent.effectType = AbilityComponent.EFFECT_PROJECTILE
     abilityComponent.preparation = 2f
     abilityComponent.cooldown = 1f
     abilityComponent.range = 128f
     abilityComponent.damage = 5
     abilityComponent.name = "fireball"
     abilityComponent.isEquipped = true
+    abilityComponent.repeat = true
+    abilityComponent.isOffensive = true
 
     val animation = new Animation[TextureRegion](0.5f, iconFrames(6)(0))
     val actor = new GameActor(animation)
@@ -230,13 +232,13 @@ object Factory {
   def makeSiegeAbility(): Entity = {
     val entity = new Entity()
     val abilityComponent = new AbilityComponent()
-    abilityComponent.abilityType = AbilityComponent.TYPE_MISSLE
+    abilityComponent.effectType = AbilityComponent.EFFECT_PROJECTILE
     abilityComponent.preparation = 5f
     abilityComponent.cooldown = 1f
     abilityComponent.range = 32f
     abilityComponent.damage = 0
     abilityComponent.name = AbilityComponent.ABILITY_SIEGE
-    abilityComponent.isEquipped = false
+    abilityComponent.isEquipped = true
 
     entity.add(abilityComponent)
     entity

@@ -39,6 +39,9 @@ class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).exc
 
   override def processEntity(entity: Entity, v: Float): scala.Unit = {
     val bc = behaviorComponent.get(entity)
+
+    if(!bc.isEnabled) return
+
     if(bc.elapsedSinceLastStep >= bc.interval) {
       bc.elapsedSinceLastStep = 0
       bc.behaviorTree.step()
@@ -46,6 +49,13 @@ class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).exc
     else {
       bc.elapsedSinceLastStep += v
     }
+  }
+
+  def tick(entity: Entity): Unit = {
+    val bc = behaviorComponent.get(entity)
+
+    if(!bc.isEnabled) return
+    bc.behaviorTree.step()
   }
 
   private def makeGuard(): BehaviorTree[Blackboard] = {

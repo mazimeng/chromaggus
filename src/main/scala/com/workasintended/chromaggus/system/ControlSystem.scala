@@ -7,8 +7,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener
 import com.badlogic.gdx.scenes.scene2d.{InputEvent, Stage}
 import com.workasintended.chromaggus.GameActor
 import com.workasintended.chromaggus.component._
-import com.workasintended.chromaggus.event.Events.UseAbility
-import com.workasintended.chromaggus.event.{Event, Events}
+import com.workasintended.chromaggus.event.Events.{FactionIncomeChanged, TargetRequired, UseAbility}
+import com.workasintended.chromaggus.event.{Event, EventHandler, Events}
 import com.workasintended.chromaggus.job.MoveTo
 
 import scala.collection.JavaConverters._
@@ -25,8 +25,17 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
   val selectedFamily: Family = Family.all(classOf[SelectedComponent]).get()
   val controllableFamily: Family = Family.all(classOf[SelectedComponent]).exclude(classOf[DeadComponent]).get()
   val selectableFamily: Family = Family.all(classOf[ActorComponent], classOf[SelectableComponent]).get()
+
   val characterSelectionChanged = new Event[Events.CharacterSelectionChanged]
   val useAbility = new Event[Events.UseAbility]
+
+  val targetRequiredHandler = new EventHandler[TargetRequired] {
+    override def handle(arg: TargetRequired): Unit = {
+      usingAbility = Some(arg.abilityName)
+    }
+  }
+
+  var usingAbility: Option[String] = None
 
   stage.addListener(new InputHandler())
 
@@ -42,7 +51,6 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
       characterSelectionChanged.fire(Events.CharacterSelectionChanged(None))
       return
     }
-
 
     clearSelection(entity)
     if (!selectedComponentMapper.has(entity)) entity.add(new SelectedComponent())
@@ -61,23 +69,37 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
     }
 
     override def tap(event: InputEvent, x: Float, y: Float, count: Int, button: Int): scala.Unit = {
-      println(s"${x}, ${y}, ${count}, ${button}")
       if (Input.Buttons.LEFT == button) {
+        println(s"${x}, ${y}, ${count}, ${button}")
+
         val actor = stage.hit(x, y, true)
 
-        if (actor == null) {
-          clearSelection()
-          characterSelectionChanged.fire(Events.CharacterSelectionChanged(None))
-          return
+        if(usingAbility.isEmpty) {
+          if (actor == null) {
+            clearSelection()
+            characterSelectionChanged.fire(Events.CharacterSelectionChanged(None))
+            return
+          }
+
+          if (!actor.isInstanceOf[GameActor]) return
+
+          val entity = actor.asInstanceOf[GameActor].entity
+
+          if (entity == null) return
+
+          select(entity)
         }
+        else if(usingAbility.isDefined) {
+          println(s"using ${usingAbility.get}")
+          if (!actor.isInstanceOf[GameActor]) return
+          val target = actor.asInstanceOf[GameActor].entity
 
-        if (!actor.isInstanceOf[GameActor]) return
+          for (elem <- getEngine.getEntitiesFor(controllableFamily).asScala) {
+            useAbility.fire(UseAbility(elem, target, usingAbility.get))
+          }
 
-        val entity = actor.asInstanceOf[GameActor].entity
-
-        if (entity == null) return
-
-        select(entity)
+          usingAbility = None
+        }
       }
       else if (Input.Buttons.RIGHT == button) {
         val actor = stage.hit(x, y, true)

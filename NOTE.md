@@ -15,6 +15,7 @@
 * icons
 * a.i.
 * use space partitioning data structure. quadtree?
+* order as a separate entity. orders can be queued
 
 
 # dragon quest + warcraft + civilization

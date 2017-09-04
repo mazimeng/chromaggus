@@ -1,30 +1,27 @@
 package com.workasintended.chromaggus
 
-import com.badlogic.ashley.core.{ComponentMapper, Engine, Entity, Family}
+import com.badlogic.ashley.core.{ComponentMapper, Engine, Entity}
 import com.badlogic.gdx.ai.btree.BehaviorTree
 import com.badlogic.gdx.ai.btree.branch.Sequence
 import com.badlogic.gdx.ai.btree.decorator.Invert
 import com.badlogic.gdx.ai.btree.utils.BehaviorTreeLibraryManager
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver
-import com.badlogic.gdx.graphics.{OrthographicCamera, Texture}
 import com.badlogic.gdx.graphics.g2d.{Animation, BitmapFont, TextureRegion}
-import com.badlogic.gdx.maps.tiled.{TiledMap, TmxMapLoader}
+import com.badlogic.gdx.graphics.{OrthographicCamera, Texture}
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
-import com.badlogic.gdx.math.{Circle, Vector2}
-import com.badlogic.gdx.scenes.scene2d.{Stage, Touchable}
+import com.badlogic.gdx.maps.tiled.{TiledMap, TmxMapLoader}
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
-import com.workasintended.chromaggus.actor.{FactionIndicator, HealthActor}
+import com.badlogic.gdx.scenes.scene2d.{Stage, Touchable}
+import com.workasintended.chromaggus.actor.HealthActor
 import com.workasintended.chromaggus.behavior._
 import com.workasintended.chromaggus.component._
 import com.workasintended.chromaggus.job.MoveTo
-
-import scala.collection.JavaConverters._
 
 /**
   * Created by mazimeng on 7/22/17.
   */
 object Factory {
-  var engine: Engine = _
   lazy val bitmapFont = new BitmapFont()
   private val transformComponentMapper = ComponentMapper.getFor(classOf[TransformComponent])
   private val movementComponentMapper = ComponentMapper.getFor(classOf[PositionComponent])
@@ -147,6 +144,17 @@ object Factory {
     entity
   }
 
+  def makeAi(faction: Entity, engine: Engine): Entity = {
+    val blackboard = new Blackboard(engine)
+    blackboard.entity = faction
+
+    val behaviorComponent = new BehaviorComponent(makeBehavior("ai", faction, blackboard))
+    behaviorComponent.isEnabled = true
+
+    faction.add(behaviorComponent)
+    faction
+  }
+
   def makeCity(faction: Entity, pos: Vector2 = new Vector2()): Entity = {
     val entity = new Entity()
 
@@ -213,7 +221,7 @@ object Factory {
     val entity = new Entity()
     val abilityComponent = new AbilityComponent()
     abilityComponent.effectType = AbilityComponent.EFFECT_PROJECTILE
-    abilityComponent.preparation = 10f
+    abilityComponent.preparation = 3f
     abilityComponent.cooldown = 1f
     abilityComponent.range = 128f
     abilityComponent.damage = 5

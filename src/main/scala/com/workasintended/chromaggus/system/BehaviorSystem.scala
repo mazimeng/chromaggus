@@ -7,7 +7,7 @@ import com.badlogic.gdx.ai.btree.BehaviorTree
 import com.badlogic.gdx.ai.btree.branch.Parallel.Policy
 import com.badlogic.gdx.ai.btree.branch.{Parallel, Selector, Sequence}
 import com.badlogic.gdx.ai.btree.decorator.Invert
-import com.badlogic.gdx.ai.btree.leaf.Wait
+import com.badlogic.gdx.ai.btree.leaf.{Success, Wait}
 import com.badlogic.gdx.ai.btree.utils.{BehaviorTreeLibrary, BehaviorTreeLibraryManager, BehaviorTreeParser}
 import com.workasintended.chromaggus.Blackboard
 import com.workasintended.chromaggus.behavior._
@@ -27,6 +27,9 @@ class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).exc
 
     val tree = makeBehavior()
     library.registerArchetypeTree("some", tree)
+
+    val ai = makeAi()
+    library.registerArchetypeTree("ai", ai)
 
     engine.addEntityListener(family, new EntityListener() {
       override def entityAdded(entity: Entity): scala.Unit = {
@@ -89,17 +92,10 @@ class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).exc
     tree
   }
 
-  private def makeGuard(): BehaviorTree[Blackboard] = {
+  def makeAi(): BehaviorTree[Blackboard] = {
     val tree = new BehaviorTree[Blackboard]()
 
-    val returnToStation = new ReturnToStation()
-    val returnToStationGuard = new Sequence(new Invert(new InSafeZone()), new Invert(new AtStation()))
-    returnToStation.setGuard(returnToStationGuard)
-
-    val attack = new Parallel[Blackboard](Policy.Sequence, new InSafeZone(), new FindThreat(), new Attack())
-
-    tree.addChild(new Selector(returnToStation, attack))
-
+    tree.addChild(new Success[Blackboard]())
     tree
   }
 }

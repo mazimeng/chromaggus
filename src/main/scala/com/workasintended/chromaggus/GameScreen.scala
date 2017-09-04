@@ -22,7 +22,6 @@ class GameScreen extends ScreenAdapter {
   var frameCount = 0
   var timeElapsed = 0f
 
-  Factory.engine = engine
   init()
 
   val fps: Container[Label] = makeFps()
@@ -93,11 +92,7 @@ class GameScreen extends ScreenAdapter {
         component.characters.add(character)
         engine.addEntity(character)
       }
-      {
-        val character = Factory.makeCharacter(engine, factionHorde, new Vector2(128, 64))
-        component.characters.add(character)
-        engine.addEntity(character)
-      }
+
     }
 
     {
@@ -108,6 +103,14 @@ class GameScreen extends ScreenAdapter {
       val city = Factory.makeCity(factionAlliance, new Vector2(13 * 32, 5 * 32))
       engine.addEntity(city)
       component.cities.add(city)
+
+      {
+        val character = Factory.makeCharacter(engine, factionAlliance, new Vector2(128, 64))
+        component.characters.add(character)
+        engine.addEntity(character)
+      }
+
+      Factory.makeAi(factionAlliance, engine)
     }
 
     //    engine.addEntity(Factory.makeCharacter(new Vector2(128, 128)))

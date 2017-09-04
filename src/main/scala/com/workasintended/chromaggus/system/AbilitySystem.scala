@@ -2,7 +2,6 @@ package com.workasintended.chromaggus.system
 
 import com.badlogic.ashley.core._
 import com.badlogic.gdx.math.{Circle, Vector2}
-import com.workasintended.chromaggus.Factory.engine
 import com.workasintended.chromaggus.component._
 import com.workasintended.chromaggus.event.Events.UseAbility
 import com.workasintended.chromaggus.event.{Event, EventHandler, Events}
@@ -211,7 +210,7 @@ class AbilitySystem() extends EntitySystem {
         ab.proficiency += ab.proficiencyGrowth
         abilityUsed.fire(Events.AbilityUsed(ability.get))
       }
-      engine.removeEntity(usable)
+      getEngine.removeEntity(usable)
     }
 
     ab.state = AbilityComponent.STATE_COOLINGDOWN
@@ -230,8 +229,10 @@ class AbilitySystem() extends EntitySystem {
     if (targetFaction == null || userFaction == null) return
     if (targetFaction == userFaction) return
 
-    targetFaction.faction = userFaction.faction
+
     factionComponent.get(userFaction.faction).cities.add(target)
+    factionComponent.get(targetFaction.faction).cities.remove(target)
+    targetFaction.faction = userFaction.faction
   }
 
   def getAbility(abilityName: String, user: Entity): Option[Entity] = {

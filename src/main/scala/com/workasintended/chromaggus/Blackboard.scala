@@ -28,7 +28,7 @@ class Blackboard(val engine: Engine) {
   def findEnemies(): Seq[Entity] = {
     val position = positionComponent.get(entity).position
 
-    val enemies: Seq[Entity] = Factory.engine.getEntitiesFor(enemyFamily).asScala.flatMap((x: Entity) => {
+    val enemies: Seq[Entity] = engine.getEntitiesFor(enemyFamily).asScala.flatMap((x: Entity) => {
       val enemyPosition: Vector2 = positionComponent.get(x).position
       val dst2 = enemyPosition.dst2(position)
 

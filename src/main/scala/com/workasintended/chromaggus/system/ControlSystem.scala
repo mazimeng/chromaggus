@@ -2,14 +2,13 @@ package com.workasintended.chromaggus.system
 
 import com.badlogic.ashley.core._
 import com.badlogic.gdx.Input
-import com.badlogic.gdx.math.{Circle, Vector2}
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener
 import com.badlogic.gdx.scenes.scene2d.{InputEvent, Stage}
 import com.workasintended.chromaggus.GameActor
 import com.workasintended.chromaggus.component._
-import com.workasintended.chromaggus.event.Events.{FactionIncomeChanged, TargetRequired, UseAbility}
+import com.workasintended.chromaggus.event.Events.TargetRequired
 import com.workasintended.chromaggus.event.{Event, EventHandler, Events}
-import com.workasintended.chromaggus.job.MoveTo
 
 import scala.collection.JavaConverters._
 
@@ -21,6 +20,7 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
   private val acmm = ComponentMapper.getFor(classOf[AbilityCollectionComponent])
   private val acm = ComponentMapper.getFor(classOf[AbilityComponent])
   private val targetableComponent = ComponentMapper.getFor(classOf[TargetableComponent])
+  private val factionComponent = ComponentMapper.getFor(classOf[FactionComponent])
 
   val selectedFamily: Family = Family.all(classOf[SelectedComponent]).get()
   val controllableFamily: Family = Family.all(classOf[SelectedComponent]).exclude(classOf[DeadComponent]).get()
@@ -56,8 +56,12 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
     if (!selectedComponentMapper.has(entity)) entity.add(new SelectedComponent())
 
     val factionSystem = getEngine.getSystem(classOf[FactionSystem])
-    val factionName = factionSystem.getFactionName(entity)
-    if (factionName.isDefined) println(s"faction: ${factionName.get}")
+    val faction = factionSystem.getFaction(entity)
+
+    if(faction.isDefined) {
+      val fc = factionComponent.get(faction.get)
+      println(s"faction: ${fc.faction}; gold: ${fc.gold}")
+    }
 
     characterSelectionChanged.fire(Events.CharacterSelectionChanged(Some(entity)))
   }
@@ -91,15 +95,25 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
         }
         else if (usingAbility.isDefined) {
           println(s"using ${usingAbility.get}")
-          if (!actor.isInstanceOf[GameActor]) return
-          val target = actor.asInstanceOf[GameActor].entity
+
+          var target: Option[Entity] = None
+          var position: Option[Vector2] = None
+
+          if(actor == null) {
+            position = Some(new Vector2(x, y))
+          }
+          else if (actor.isInstanceOf[GameActor]) {
+            target = Some(actor.asInstanceOf[GameActor].entity)
+          }
+          else {
+            return
+          }
 
           for (elem <- getEngine.getEntitiesFor(controllableFamily).asScala) {
-//            useAbility.fire(UseAbility(elem, target, usingAbility.get))
-
             getEngine.getSystem(classOf[BehaviorSystem]).reset(elem)
             val orderComponent = new OrderComponent()
-            orderComponent.target = Some(target)
+            orderComponent.target = target
+            orderComponent.position = position
             orderComponent.ability = getEngine.getSystem(classOf[AbilitySystem]).getAbility(usingAbility.get, elem)
             elem.add(orderComponent)
             elem.remove(classOf[JobComponent])
@@ -125,14 +139,11 @@ class ControlSystem(val stage: Stage) extends EntitySystem {
         else {
           if (!actor.isInstanceOf[GameActor]) return
           val target = actor.asInstanceOf[GameActor].entity
-          //          if (target == null || !targetableComponent.has(target)) return
-
           for (elem <- getEngine.getEntitiesFor(controllableFamily).asScala) {
-            //            useAbility.fire(UseAbility(elem, target, AbilityComponent.ABILITY_DEFAULT))
             getEngine.getSystem(classOf[BehaviorSystem]).reset(elem)
             val orderComponent = new OrderComponent()
             orderComponent.target = Some(target)
-            orderComponent.ability = getEngine.getSystem(classOf[AbilitySystem]).getAbility(AbilityComponent.ABILITY_FIREBALL, elem)
+            orderComponent.ability = getEngine.getSystem(classOf[AbilitySystem]).getAbility(AbilityComponent.ABILITY_MOVE, elem)
             elem.add(orderComponent)
             elem.remove(classOf[JobComponent])
 

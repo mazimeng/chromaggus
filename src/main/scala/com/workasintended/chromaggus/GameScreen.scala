@@ -1,6 +1,6 @@
 package com.workasintended.chromaggus
 
-import com.badlogic.ashley.core.Engine
+import com.badlogic.ashley.core.{Engine, Entity}
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.math.Vector2
@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.ui._
 import com.badlogic.gdx.utils.viewport._
 import com.badlogic.gdx.{Gdx, InputMultiplexer, ScreenAdapter}
 import com.kotcrab.vis.ui.VisUI
+import com.workasintended.chromaggus.component.FactionComponent
 import com.workasintended.chromaggus.system._
 
 class GameScreen extends ScreenAdapter {
@@ -35,7 +36,7 @@ class GameScreen extends ScreenAdapter {
 
     if (frameCount >= 120) {
       timeElapsed = timeElapsed / 1000000.0f
-      fps.getActor.setText(s"ms/frame: ${timeElapsed / frameCount}; fps: ${frameCount / (timeElapsed / 1000)}")
+      fps.getActor.setText(s"ms/frame: ${timeElapsed / frameCount}; fps: ${frameCount / (timeElapsed / 1000)}; ${Gdx.graphics.getFramesPerSecond}")
       timeElapsed = 0
       frameCount = 0
     }
@@ -43,6 +44,9 @@ class GameScreen extends ScreenAdapter {
 
   def init(): scala.Unit = {
     initAssets()
+
+    val factionHorde = new Entity()
+    val factionAlliance = new Entity()
 
     val worldRenderer = Factory.makeWorldRenderer(stage)
     val renderSystem = new RenderSystem(stage, ui, worldRenderer)
@@ -53,10 +57,16 @@ class GameScreen extends ScreenAdapter {
     val behaviorDebugginSystem = new BehaviorDebuggingSystem(ui)
     val abilitySystem = new AbilitySystem()
     val cameraSystem = new CameraSystem(stage)
-    val playerSystem = new PlayerSystem()
-    val abilityUiSystem = new AbilityUiSystem(ui)
+    val playerSystem = new PlayerSystem(factionHorde)
+    val abilityUiSystem = new ManagementUiSystem(ui)
+    val factionSystem = new FactionSystem()
+    val characterUiSystem = new CharacterUiSystem(ui)
+    val cooldownSystem = new CooldownSystem()
 
-    playerSystem.factionName = "horde"
+    factionSystem.factionIncomeChanged.addObserver(abilityUiSystem.incomeChangeHandler)
+    controlSystem.characterSelectionChanged.addObserver(characterUiSystem.characterSelectedHandler)
+    controlSystem.useAbility.addObserver(abilitySystem.useAbilityHandler)
+    characterUiSystem.targetRequired.addObserver(controlSystem.targetRequiredHandler)
 
     engine.addSystem(playerSystem)
     engine.addSystem(controlSystem)
@@ -69,11 +79,39 @@ class GameScreen extends ScreenAdapter {
     engine.addSystem(cameraSystem)
     engine.addSystem(renderSystem)
     engine.addSystem(abilityUiSystem)
+    engine.addSystem(factionSystem)
+    engine.addSystem(characterUiSystem)
+    engine.addSystem(cooldownSystem)
 
-    engine.addEntity(Factory.makeCity(new Vector2(13 * 32, 5 * 32)))
-    engine.addEntity(Factory.makeCharacter(new Vector2(0, 0)))
-    engine.addEntity(Factory.makeCharacter(new Vector2(128, 128)))
-    engine.addEntity(Factory.makeCharacter(new Vector2(256, 256)))
+    {
+      val component = new FactionComponent("horde")
+      factionHorde.add(component)
+      engine.addEntity(factionHorde)
+
+      {
+        val character = Factory.makeCharacter(engine, factionHorde, new Vector2(0, 0))
+        component.characters.add(character)
+        engine.addEntity(character)
+      }
+      {
+        val character = Factory.makeCharacter(engine, factionHorde, new Vector2(128, 64))
+        component.characters.add(character)
+        engine.addEntity(character)
+      }
+    }
+
+    {
+      val component = new FactionComponent("alliance")
+      factionAlliance.add(component)
+      engine.addEntity(factionAlliance)
+
+      val city = Factory.makeCity(factionAlliance, new Vector2(13 * 32, 5 * 32))
+      engine.addEntity(city)
+      component.cities.add(city)
+    }
+
+    //    engine.addEntity(Factory.makeCharacter(new Vector2(128, 128)))
+//    engine.addEntity(Factory.makeCharacter(new Vector2(256, 256)))
 
 
     val multiplexer = new InputMultiplexer()

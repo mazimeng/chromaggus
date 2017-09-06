@@ -13,7 +13,7 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.{Circle, Vector2}
 import com.badlogic.gdx.scenes.scene2d.{Stage, Touchable}
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
-import com.workasintended.chromaggus.actor.HealthActor
+import com.workasintended.chromaggus.actor.{FactionIndicator, HealthActor}
 import com.workasintended.chromaggus.behavior._
 import com.workasintended.chromaggus.component._
 import com.workasintended.chromaggus.job.MoveTo
@@ -27,7 +27,7 @@ object Factory {
   var engine: Engine = _
   lazy val bitmapFont = new BitmapFont()
   private val transformComponentMapper = ComponentMapper.getFor(classOf[TransformComponent])
-  private val movementComponentMapper = ComponentMapper.getFor(classOf[MovementComponent])
+  private val movementComponentMapper = ComponentMapper.getFor(classOf[PositionComponent])
   private val abilityComponent = ComponentMapper.getFor(classOf[AbilityComponent])
 
   private lazy val char00 = new Texture("char00.png")
@@ -84,7 +84,13 @@ object Factory {
     actor
   }
 
-  def makeCharacter(pos: Vector2 = new Vector2()): Entity = {
+  def makeFaction(): Entity = {
+    val entity = new Entity()
+    entity.add(new FactionComponent("horde"))
+    entity
+  }
+
+  def makeCharacter(engine: Engine, faction: Entity, pos: Vector2 = new Vector2()): Entity = {
     val entity = new Entity()
 
     val animation = new Animation[TextureRegion](0.5f, char01Frames(0)(0), char01Frames(0)(2))
@@ -93,25 +99,27 @@ object Factory {
     actor.setSize(32, 32)
     val actorComponent = new ActorComponent(actor)
     val transformComponent = new TransformComponent(pos)
-    val movementComponent = new MovementComponent(pos)
+    val movementComponent = new PositionComponent(pos)
     val attributeComponent = new AttributeComponent()
+    val belongToFactionComponent = new BelongToFactionComponent(faction)
     attributeComponent.health = 100
 
-    val blackboard = new Blackboard()
+    val blackboard = new Blackboard(engine)
     blackboard.entity = entity
     blackboard.station.set(pos, 64f)
     blackboard.safe.set(pos, 128f)
 
     val behaviorComponent = new BehaviorComponent(makeBehavior("some", entity, blackboard))
+    behaviorComponent.isEnabled = true
 
+    entity.add(belongToFactionComponent)
     entity.add(actorComponent)
     entity.add(transformComponent)
     entity.add(movementComponent)
     entity.add(new SelectableComponent())
-    //    entity.add(behaviorComponent)
+    entity.add(behaviorComponent)
     entity.add(attributeComponent)
     entity.add(new TargetableComponent())
-    entity.add(new FactionComponent("horde"))
     entity.add(new NameComponent(randomNames.next()))
 
     actor.entity = entity
@@ -119,36 +127,44 @@ object Factory {
     val skin: Skin = Service.assetManager.get("uiskin.json")
     val treeViewer = new BehaviorTreeViewer[Blackboard](behaviorComponent.behaviorTree, skin)
     val behaviorDebuggerComponent: BehaviorDebuggerComponent[Blackboard] = new BehaviorDebuggerComponent(treeViewer)
-    //    entity.add(behaviorDebuggerComponent)
+    entity.add(behaviorDebuggerComponent)
 
     val healthActor = new HealthActor(attributeComponent)
     actor.addActor(healthActor)
 
     val abilityCollectionComponent = new AbilityCollectionComponent()
     val fireball = makeFireballAbility()
-    abilityCollectionComponent.abilities(0) = fireball
+    val siege = makeSiegeAbility()
+    abilityCollectionComponent.abilities.add(fireball)
+    abilityCollectionComponent.abilities.add(siege)
 
     entity.add(abilityCollectionComponent)
 
     engine.addEntity(fireball)
 
-
     entity
   }
 
-  def makeCity(pos: Vector2 = new Vector2()): Entity = {
+  def makeCity(faction: Entity, pos: Vector2 = new Vector2()): Entity = {
     val entity = new Entity()
 
     val animation = new Animation[TextureRegion](0.0f, cityFrames(0)(0))
 
     val actor = new GameActor(animation)
     actor.setSize(32, 32)
+
+    val positionComponent = new PositionComponent(pos)
     val actorComponent = new ActorComponent(actor)
     val transformComponent = new TransformComponent(pos)
-
+    val cityComponent = new CityComponent()
+    val belongToFactionComponent = new BelongToFactionComponent(faction)
+    cityComponent.income = 10
     entity.add(actorComponent)
+    entity.add(positionComponent)
     entity.add(transformComponent)
     entity.add(new SelectableComponent())
+    entity.add(cityComponent)
+    entity.add(belongToFactionComponent)
 
     actor.entity = entity
 
@@ -194,17 +210,35 @@ object Factory {
   def makeFireballAbility(): Entity = {
     val entity = new Entity()
     val abilityComponent = new AbilityComponent()
-    abilityComponent.abilityType = AbilityComponent.TYPE_MISSLE
+    abilityComponent.effectType = AbilityComponent.EFFECT_PROJECTILE
     abilityComponent.preparation = 2f
     abilityComponent.cooldown = 1f
     abilityComponent.range = 128f
-    abilityComponent.damage = 40
+    abilityComponent.damage = 5
     abilityComponent.name = "fireball"
+    abilityComponent.isEquipped = true
+    abilityComponent.repeat = true
+    abilityComponent.isOffensive = true
 
     val animation = new Animation[TextureRegion](0.5f, iconFrames(6)(0))
     val actor = new GameActor(animation)
     actor.setSize(32f, 32f)
     abilityComponent.actor = actor
+
+    entity.add(abilityComponent)
+    entity
+  }
+
+  def makeSiegeAbility(): Entity = {
+    val entity = new Entity()
+    val abilityComponent = new AbilityComponent()
+    abilityComponent.effectType = AbilityComponent.EFFECT_PROJECTILE
+    abilityComponent.preparation = 5f
+    abilityComponent.cooldown = 1f
+    abilityComponent.range = 32f
+    abilityComponent.damage = 0
+    abilityComponent.name = AbilityComponent.ABILITY_SIEGE
+    abilityComponent.isEquipped = true
 
     entity.add(abilityComponent)
     entity

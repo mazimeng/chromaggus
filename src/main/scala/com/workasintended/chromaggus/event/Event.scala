@@ -1,3 +1,11 @@
 package com.workasintended.chromaggus.event
 
-class Event(val name: String, val argument: Option[Any] = None)
+import java.util.Observable
+
+class Event[T] extends Observable {
+  def fire(arg: T): Unit = {
+    setChanged()
+    notifyObservers(arg)
+  }
+}
+

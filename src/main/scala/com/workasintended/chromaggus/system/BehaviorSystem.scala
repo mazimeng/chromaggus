@@ -3,7 +3,8 @@ package com.workasintended.chromaggus.system
 import com.badlogic.ashley.core._
 import com.badlogic.ashley.systems.IteratingSystem
 import com.badlogic.gdx.ai.GdxAI
-import com.badlogic.gdx.ai.btree.BehaviorTree
+import com.badlogic.gdx.ai.btree.{BehaviorTree, Task}
+import com.badlogic.gdx.ai.btree.BehaviorTree.Listener
 import com.badlogic.gdx.ai.btree.branch.Parallel.Policy
 import com.badlogic.gdx.ai.btree.branch.{Parallel, Selector, Sequence}
 import com.badlogic.gdx.ai.btree.decorator.Invert
@@ -89,6 +90,13 @@ class BehaviorSystem(family: Family = Family.all(classOf[BehaviorComponent]).exc
     val root = new Sequence[Blackboard](getClose, prepare, useAbility)
     root.setGuard(new ReceivedOrder())
     tree.addChild(root)
+    tree.addListener(new Listener[Blackboard]() {
+      override def childAdded(task: Task[Blackboard], index: Int): Unit = {}
+
+      override def statusUpdated(task: Task[Blackboard], previousStatus: Task.Status): Unit = {
+        println(task.getClass)
+      }
+    })
     tree
   }
 

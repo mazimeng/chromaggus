@@ -10,4 +10,5 @@ import scala.collection.mutable
 class AbilityCollectionComponent extends Component{
   val abilities: mutable.Set[Entity] = mutable.Set()
   val abilitySlots: Int = 2
+  var usingAbility: Option[String] = None
 }

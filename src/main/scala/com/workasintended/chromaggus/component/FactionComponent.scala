@@ -9,6 +9,6 @@ import scala.collection.mutable
   */
 class FactionComponent(val faction: String) extends Component {
   var gold: Long = 0L
-  var characters: mutable.Set[Entity] = mutable.Set()
-  var cities: mutable.Set[Entity] = mutable.Set()
+  val characters: mutable.Set[Entity] = mutable.Set()
+  val cities: mutable.Set[Entity] = mutable.Set()
 }
